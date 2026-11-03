@@ -21,6 +21,15 @@ python run_pilot.py --fetch                            # downloads real weather,
 streamlit run dashboard.py                             # opens the demo in the browser
 ```
 
+**Intel Mac (or a "Failed building wheel for llvmlite" error):** recent numba has no ready-made
+package for Intel Macs, so use Anaconda instead of `venv`:
+
+```bash
+conda create -n heatguard -c conda-forge python=3.12 numba scipy -y
+conda activate heatguard
+pip install pythermalcomfort==4.8.0 thermofeel==2.3.0 pandas scikit-learn requests streamlit pytest
+```
+
 Use `--design full` for the full study size (30 workers × 60 dates, about 7 minutes).
 `--test-weather` uses **synthetic** weather to check the code when Open-Meteo is unreachable.
 Its numbers must never be reported. Every output folder from it is labelled `_TEST_SYNTHETIC`.
