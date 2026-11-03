@@ -85,3 +85,15 @@ def test_minute_weather_actually_varies():
                            "shortwave_radiation": 500.0, "direct_radiation": 300.0, "source": "unit-test"})
     w = weather.shift_minutes(hourly, "2025-08-01")
     assert w["tdb"].iloc[0] == 6.0 and abs(w["tdb"].iloc[90] - 7.5) < 1e-9 and w["tdb"].iloc[-1] > 11.9
+
+
+def test_every_partition_gets_every_profile_group():
+    """Regression test: the first full run put only light-work unacclimatised and heavy-work
+    acclimatised workers in the test set, so the test set could not contain danger events."""
+    from heatguard import config as C
+    wk = workers.make_workers(30)
+    dates = [f"2025-07-{d:02d}" for d in range(1, 31)] + [f"2025-08-{d:02d}" for d in range(1, 31)]
+    split = workers.make_split(wk["worker_id"].tolist(), dates, C.FULL)
+    m = split.drop_duplicates("worker_id").merge(wk)
+    counts = m.groupby(["partition", "acclimatised", "work_rate_wm2"]).size()
+    assert len(counts) == 3 * 6 and counts.loc["test"].min() == 1 and counts.loc["train"].min() == 3

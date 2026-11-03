@@ -33,8 +33,12 @@ def log(msg: str) -> None:
 def simulate_all(hourly, split, wk, out: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     traj_path, idx_path = out / "trajectories.csv.gz", out / "shift_index.csv"
     if traj_path.exists() and idx_path.exists():
-        log("re-using simulated shifts from a previous run")
-        return pd.read_csv(traj_path, parse_dates=["timestamp"]), pd.read_csv(idx_path)
+        old = pd.read_csv(idx_path)
+        same = old[["worker_id", "date", "partition"]].reset_index(drop=True).equals(split.reset_index(drop=True))
+        if same:
+            log("re-using simulated shifts from a previous run")
+            return pd.read_csv(traj_path, parse_dates=["timestamp"]), old
+        log("split has changed since the last run: simulating again")
     weather_cache, trajs, index = {}, [], []
     for i, row in enumerate(split.itertuples(index=False)):
         if row.date not in weather_cache:

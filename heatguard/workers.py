@@ -12,12 +12,13 @@ from . import config as C
 
 
 def make_workers(n: int, seed: int = C.SEED) -> pd.DataFrame:
-    """Virtual workers. Acclimatisation and work rate are balanced, then shuffled."""
+    """Virtual workers. Acclimatisation x work-rate groups are balanced, then shuffled."""
     rng = np.random.default_rng(seed)
-    acclim = np.resize([True, False], n)
-    rates = np.resize(C.WORK_RATES_WM2, n)
-    rng.shuffle(acclim)
-    rng.shuffle(rates)
+    # Every acclimatisation x work-rate combination appears equally often (5 each for 30 workers)
+    combos = [(a, r) for a in (True, False) for r in C.WORK_RATES_WM2]
+    picked = [combos[i] for i in rng.permutation(np.resize(np.arange(len(combos)), n))]
+    acclim = np.array([a for a, _ in picked])
+    rates = np.array([r for _, r in picked])
     return pd.DataFrame({
         "worker_id": [f"W{i + 1:03d}" for i in range(n)],
         "mass_kg": rng.uniform(*C.MASS_RANGE_KG, n).round(1),
@@ -54,26 +55,26 @@ def partition(items: list, sizes: tuple[int, int, int], seed: int) -> dict[str, 
     return {"train": items[:a], "val": items[a:a + b], "test": items[a + b:]}
 
 
-def _alternate_by_acclimatisation(worker_ids: list[str], seed: int) -> list[str]:
-    """Shuffle, then alternate acclimatised / unacclimatised workers so every
-    partition gets both groups (stratified split)."""
+def _stratified_order(worker_ids: list[str], seed: int) -> list[str]:
+    """Order workers so that consecutive blocks contain every acclimatisation x work-rate
+    group (round robin over the groups). Cutting this list into train/val/test then gives
+    each partition the same mix of profiles (stratified split)."""
     wk = make_workers(len(worker_ids), seed).set_index("worker_id").loc[worker_ids]
     rng = np.random.default_rng(seed + 1)
-    acc = list(rng.permutation(wk.index[wk["acclimatised"]]))
-    una = list(rng.permutation(wk.index[~wk["acclimatised"]]))
+    # Groups ordered so acclimatised and unacclimatised alternate: even a 2-worker partition gets one of each
+    groups = [list(rng.permutation(g.index)) for _, g in wk.groupby(["work_rate_wm2", "acclimatised"])]
     order = []
-    while acc or una:
-        if una:
-            order.append(una.pop())
-        if acc:
-            order.append(acc.pop())
+    while any(groups):
+        for g in groups:
+            if g:
+                order.append(g.pop())
     return order
 
 
 def make_split(worker_ids: list[str], dates: list[str], design: dict, seed: int = C.SEED) -> pd.DataFrame:
     """Only worker/date pairs from the SAME partition are simulated, so no worker
     or date leaks across train, validation and test."""
-    wp = partition(_alternate_by_acclimatisation(worker_ids, seed), design["worker_split"], seed)
+    wp = partition(_stratified_order(worker_ids, seed), design["worker_split"], seed)
     dp = partition(sorted(dates), design["date_split"], seed)
     rows = [(w, d, part) for part in ("train", "val", "test") for w in wp[part] for d in dp[part]]
     return pd.DataFrame(rows, columns=["worker_id", "date", "partition"])
