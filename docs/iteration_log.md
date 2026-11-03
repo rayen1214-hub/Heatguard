@@ -1,0 +1,15 @@
+# Iteration log
+
+Newest first. Each entry: what we tried, what happened, what we changed. Failures stay in.
+Runs marked SYNTHETIC used test weather (Open-Meteo was unreachable from the build machine);
+they check the code, not the research question.
+
+| Date | Version | What we tried | What happened | What we changed |
+|------|---------|---------------|---------------|-----------------|
+| 2026-11-03 | v0.1 | Same pipeline at full design size (30 workers × 60 dates, 792 shifts), SYNTHETIC | With 143 training events the model learned: on test it caught all 3 events with the full 30-min lead, at 0.3 false episodes and 8 warning minutes per shift, versus 357 warning minutes for the WBGT rule. But all training events were unacclimatised and all test events acclimatised, and validation had only 1 event, so the threshold choice rests on one event | Not a result (synthetic weather, and heart rate is generated from the simulated body). Next: run on real 2025 weather, check event counts per partition, and decide whether the chronological date split leaves enough events in validation and test |
+| 2026-11-03 | v0.1 | First full pipeline run, pilot size (10 workers × 10 dates), SYNTHETIC | Pipeline ran end to end. Only 4 danger events in 36 training shifts. Logistic regression gave ~0% risk before every test event, so it missed all of them; no validation threshold met the 5% miss limit. WBGT rule warned for ~240 of 360 minutes per shift, so it "caught" every event with full 30-min lead time but with a very high alarm burden | Re-ran at full design size to test whether more events fix the model (entry above). Noted that warning minutes per shift (E3) is essential: lead time alone makes an always-on rule look perfect |
+| 2026-11-03 | v0.1 | Stratified worker split | First split put only unacclimatised workers in test and only acclimatised in validation | Split now alternates acclimatised/unacclimatised workers (decision D7) |
+| 2026-11-03 | v0.1 | WBGT at sunrise | WBGT jumped by ~4 °C at 06:00 because hour-averaged direct radiation was divided by a tiny cos(zenith). A first hard cut-off left a 2 °C step | Direct sun faded in between cos(zenith) 0.05 and 0.15 (D8) |
+| 2026-11-03 | v0.1 | First pilot run, SYNTHETIC | Zero danger events. Investigation showed every minute of a shift had identical weather: a datetime-unit mismatch in pandas 3 broke the hourly-to-minute interpolation | Interpolation now uses minutes since shift start; regression test `test_minute_weather_actually_varies` added |
+| 2026-11-03 | v0.1 | Chained one-minute PHS vs one steady 120-min run (36 °C, 50% RH, 230 W/m²) | Rectal temperature differed by 0.023 °C (unacclimatised) and 0.004 °C (acclimatised) | Accepted; kept as `test_chained_phs_matches_steady_run` (tolerance 0.05 °C) |
+| 2026-11-03 | pre-build | Morning-heat check, constant conditions, no rest breaks | Danger events mostly for unacclimatised heavy work and humid mornings; acclimatised workers rarely reached 38.5 °C | Event counts must be checked on real 2025 weather before trusting E1/E2 (decision D2) |
