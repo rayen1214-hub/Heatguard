@@ -59,7 +59,7 @@ def make_test_weather(out_dir: str | Path = "data") -> Path:
     rng = np.random.default_rng(0)
     ts = pd.date_range(C.WEATHER_START, f"{C.WEATHER_END} 23:00", freq="h")
     hour = ts.hour.to_numpy()
-    day = rng.normal(0, 1.5, len(ts) // 24 + 1)[(ts.dayofyear - ts.dayofyear[0]).to_numpy()]
+    day = rng.normal(0, 1.5, len(ts) // 24 + 1)[(ts.day_of_year - ts.day_of_year[0]).to_numpy()]
     # Rough Dubai-summer shape: about 33 C at 06:00 rising to about 41 C by noon
     temp = 36 + day + 6 * np.sin((hour - 8) / 24 * 2 * np.pi)
     rh = np.clip(55 - 3.0 * (temp - 33) + rng.normal(0, 5, len(ts)), 15, 95)
@@ -86,7 +86,7 @@ def load_hourly(path: str | Path) -> pd.DataFrame:
 def cos_solar_zenith(ts_local: pd.DatetimeIndex, lat: float = C.LATITUDE, lon: float = C.LONGITUDE,
                      utc_offset_h: float = 4.0) -> np.ndarray:
     """Cosine of the solar zenith angle (NOAA approximation), needed by the WBGT model."""
-    doy = ts_local.dayofyear.to_numpy()
+    doy = ts_local.day_of_year.to_numpy()
     hours = ts_local.hour.to_numpy() + ts_local.minute.to_numpy() / 60
     g = 2 * np.pi / 365 * (doy - 1 + (hours - 12) / 24)
     decl = (0.006918 - 0.399912 * np.cos(g) + 0.070257 * np.sin(g) - 0.006758 * np.cos(2 * g)
