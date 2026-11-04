@@ -5,7 +5,7 @@ so the commit history matches this table.
 
 | Member | Student no. | Part(s) owned | What I did this week | Commits / evidence |
 |--------|-------------|---------------|----------------------|--------------------|
-| Rayen Chaouachi | 1268806 | 3 Simulator; pipeline and integration | | |
+| Rayen Chaouachi | 1268806 | 3 Simulator; pipeline and integration | Led the Week 7 build: planned the prototype design and its limits; built v0.1 and v0.2 with Claude Code (declared in docs/genai_log.md); ran the pilot and full study on real 2025 weather on my laptop; found the empty test set in the first full run and had the split fixed (v0.2); took the dashboard evidence screenshots; prepared the documentation handover | Commits b714ac3 to 1b35743 (made through a Claude Code session); iteration log entries for v0.1 to v0.2; evidence/ screenshots |
 | Zayed Zanober | 8417386 | | | |
 | Faseeh Padinjarathil | 8418779 | | | |
 | Jaanvi Chugani | 9959877 | | | |
