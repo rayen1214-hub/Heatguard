@@ -97,3 +97,21 @@ def test_every_partition_gets_every_profile_group():
     m = split.drop_duplicates("worker_id").merge(wk)
     counts = m.groupby(["partition", "acclimatised", "work_rate_wm2"]).size()
     assert len(counts) == 3 * 6 and counts.loc["test"].min() == 1 and counts.loc["train"].min() == 3
+
+
+def test_fault_detection_delay_is_within_rule():
+    """Latency measure: fallback must start within the configured limits after a fault begins."""
+    from heatguard import alerts, latency
+    from heatguard import config as C
+    traj, worker, weather_min = _toy_shift()
+    msgs = wearables.make_messages(traj, worker, seed=1)
+    logs = []
+    for scenario in ("S5_dropout", "S6_stuck"):
+        faulty = wearables.inject_fault(msgs, scenario, seed=1, worker=worker, traj=traj)
+        f = features.build_features(faulty, weather_min, worker)
+        pol = alerts.run_policies(np.zeros(len(f)), 0.5, pd.Series(np.zeros(len(f))), f)
+        logs.append(pd.DataFrame({"worker_id": "W", "date": "d", "scenario": scenario,
+                                  "minute": f["minute"], "mode": pol["mode"]}))
+    out = latency.fault_detection_delay(pd.concat(logs))
+    assert out["S5_dropout"]["detect_delay_min_max"] <= C.HR_OFFLINE_AFTER_MIN
+    assert out["S6_stuck"]["detect_delay_min_max"] <= C.HR_STUCK_AFTER_MIN

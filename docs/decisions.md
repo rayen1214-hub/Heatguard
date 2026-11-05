@@ -1,4 +1,4 @@
-# Design decisions (v0.1)
+# Design decisions
 
 | # | Decision | Why | Alternative rejected or deferred |
 |---|----------|-----|---------------------------------|
@@ -11,3 +11,5 @@
 | D7 | Workers are balanced across acclimatisation × work-rate groups, and every partition gets every group (stratified split) | Unbalanced splits left test sets that could not contain danger events (see iteration log) | Random split; balancing acclimatisation only |
 | D8 | Direct sunlight faded in between cos(solar zenith) 0.05 and 0.15 in the WBGT calculation | Hour-averaged radiation divided by a tiny cos(zenith) gave impossible sunrise WBGT values; a hard cut-off caused a 2 °C jump | Using the raw value; a hard cut-off |
 | D9 | Air speed for PHS = 10 m wind × 0.75, clipped to 0.2–3.0 m/s | PHS needs air speed at body height and has a valid range of 0–3 m/s | Using 10 m wind directly |
+| D10 | Latency is measured two ways: processing time per wearable message (message in, alert decision out), and fault-detection delay (minutes from the first faulty heart-rate reading to WBGT fallback, and back to ML after the fault) | Tutor feedback (29 Oct) asked for explicit latency measures. With one-minute messages, a decision must finish well inside 60 s; fallback must start within the configured limits (2 min offline, 5 identical readings) | End-to-end network latency: there is no broker or device (D6), so it would be invented |
+| D11 | Usability is measured by alarm burden (warning minutes and false alarm episodes per shift, already in E3) plus a heuristic evaluation of the dashboard against Nielsen's 10 usability heuristics by two group members | Alarm burden is the usability problem that matters most for warning systems (alarm fatigue). A heuristic review needs no outside participants, so the "no human participants" statement in Section III stays true | User study with classmates (e.g. SUS questionnaire): involves human participants and would need ethics clearance |
