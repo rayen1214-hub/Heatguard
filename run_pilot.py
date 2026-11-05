@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 
 from heatguard import config as C
-from heatguard import alerts, baseline, evaluate, features, latency, model, simulator, wearables, weather, workers
+from heatguard import alerts, baseline, evaluate, features, model, simulator, wearables, weather, workers
 
 TEST_SCENARIOS = ["clean", "S5_dropout", "S6_stuck"]
 HORIZON = C.HORIZONS_MIN[0]   # 30-minute primary horizon
@@ -150,12 +150,9 @@ def main():
     log(f"threshold chosen on validation: {thr} (constraint met: {bool(thr_table['constraint_met'].iloc[0])})")
 
     # TEST: each scenario, three policies
-    scores, logs, latency_shifts = [], [], []
+    scores, logs = [], []
     for scenario in TEST_SCENARIOS:
         _, _, meta = rows_for("test", scenario)
-        if scenario == "clean":
-            latency_shifts = [(msgs, traj[["wbgt", "tdb", "rh"]], worker_of(wid), rule)
-                              for wid, _, _, msgs, _, rule, traj in meta]
         for wid, date, onset, msgs, feats, rule, traj in meta:
             prob = model.predict_proba(clf, feats[features.ALL_FEATURES])
             pol = alerts.run_policies(prob, thr, rule["wbgt_alert"], feats)
@@ -170,14 +167,7 @@ def main():
                 "onset": onset if onset is not None else -1, **pol}))
     scores = pd.DataFrame(scores)
     scores.to_csv(out / "scores.csv", index=False)
-    policy_logs = pd.concat(logs, ignore_index=True)
-    policy_logs.to_csv(out / "policy_logs.csv.gz", index=False)
-
-    # Latency measures: decision time per message, and how fast sensor faults are detected
-    log("measuring decision latency (replaying test shifts message by message)")
-    lat = {"decision": latency.decision_latency(clf, thr, latency_shifts),
-           "fault_detection": latency.fault_detection_delay(policy_logs)}
-    (out / "latency.json").write_text(json.dumps(lat, indent=2))
+    pd.concat(logs, ignore_index=True).to_csv(out / "policy_logs.csv.gz", index=False)
     wearables.to_jsonl(meta[0][3], out / "sample_messages.jsonl")
 
     summary = {}
@@ -195,17 +185,10 @@ def main():
         "python": platform.python_version(),
         "versions": {p: version(p) for p in ["pythermalcomfort", "thermofeel", "scikit-learn", "pandas", "numpy"]},
     }
-    (out / "summary.json").write_text(json.dumps({"run_info": run_info, "results": summary, "latency": lat},
-                                                 indent=2, default=str))
+    (out / "summary.json").write_text(json.dumps({"run_info": run_info, "results": summary}, indent=2, default=str))
     table = scores.groupby(["scenario", "policy"]).apply(lambda g: pd.Series(evaluate.summarise(g)), include_groups=False)
     log("TEST results" + (" (SYNTHETIC WEATHER: pipeline check only)" if synthetic else "") + ":\n"
         + table[["events", "missed", "median_lead", "false_per_shift", "warning_min_per_shift"]].to_string())
-    d = lat["decision"]
-    log(f"LATENCY: decision per message median {d['median_ms']} ms, p95 {d['p95_ms']} ms, max {d['max_ms']} ms "
-        f"({d['messages']} messages, {d['shifts']} test shifts)")
-    for sc, v in lat["fault_detection"].items():
-        log(f"LATENCY: {sc} detected after {v['detect_delay_min_median']} min (max {v['detect_delay_min_max']}), "
-            f"back to ML {v['recover_delay_min_median']} min after the fault ended")
 
 
 if __name__ == "__main__":

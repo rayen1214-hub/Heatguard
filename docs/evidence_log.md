@@ -10,8 +10,8 @@ AI prompts and individual contributions").
 | Decision history | [`decisions.md`](decisions.md) | Decisions D1–D11, each with its reason and the rejected alternative |
 | Iterations, including failures | [`iteration_log.md`](iteration_log.md) | Every run: what we tried, what happened, what we changed |
 | Version history | GitHub commit history (`main`), screenshot `evidence/13_github_commit_history.png` | v0.1 → v0.2 commits (table below) |
-| Test records | [`../tests/test_core.py`](../tests/test_core.py) | 10 automated checks, run with `python -m pytest -q` |
-| Results and latency | `outputs/<run>/summary.json` and `latency.json` (created by each run) | E1–E3 per scenario and method; decision and fault-detection latency |
+| Test records | [`../tests/test_core.py`](../tests/test_core.py) | 9 automated checks, run with `python -m pytest -q` |
+| Results | `outputs/<run>/summary.json` (created by each run) | E1–E3 per scenario and method |
 | Screenshots | [`evidence/`](evidence/) | Test runs, results tables, dashboard (clean, dropout, stuck, danger shift) |
 | AI use and prompts | [`genai_log.md`](genai_log.md), prompt records in [`prompts/`](prompts/) | Which tool did what, how it was checked, and the prompts used |
 | Individual contributions | [`../CONTRIBUTIONS.md`](../CONTRIBUTIONS.md) | Each member's own row, committed from their own GitHub account |
@@ -27,9 +27,11 @@ AI prompts and individual contributions").
 | 0ab144b | 3 Nov 2026 | v0.2 | Iteration log: corrected full-run duration |
 | 1b35743 | 3 Nov 2026 | v0.2 | Iteration log: first full real-weather results |
 | 234e007 | 4 Nov 2026 | v0.2 | Contributions table: Rayen's row |
-| (this commit) | 5 Nov 2026 | v0.3 | Latency measures, evidence log, architecture versions, prompt records |
+| 52f0ff4 and later | 5 Nov 2026 | v0.2 | Evidence log, architecture versions, prompt records (documentation only) |
 
-## Latency and usability measures (added 5 Nov 2026)
+## Latency and usability measures (proposed 5 Nov 2026, under review)
+
+The latency code is on the branch `latency-measures`, not on `main`. It will be merged after the group has reviewed it.
 
 - **Decision latency:** time from one wearable message arriving to the alert decision, replaying test shifts
   message by message. Reported as median, 95th percentile and maximum in milliseconds. Budget: 60 s (one message per minute).

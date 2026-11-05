@@ -16,7 +16,7 @@ Both methods run on exactly the same shifts. The true core temperature goes only
 ```bash
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest -q                                    # 10 checks; all must pass
+python -m pytest -q                                    # 9 checks; all must pass
 python run_pilot.py --fetch                            # downloads real weather, runs the pilot (~30 s)
 streamlit run dashboard.py                             # opens the demo in the browser
 ```
@@ -60,7 +60,6 @@ without touching the others. All study settings live in `heatguard/config.py`.
 | `scores.csv`, `summary.json` | E1–E3 per test shift, scenario and method; run settings and library versions |
 | `policy_logs.csv.gz` | Per-minute warnings for the dashboard |
 | `sample_messages.jsonl` | Example MQTT-style wearable messages |
-| `latency.json` | Decision latency per message and sensor-fault detection delay |
 
 ## What this prototype does not show
 
