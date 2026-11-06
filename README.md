@@ -41,6 +41,8 @@ Run after `run_pilot.py`; it reuses the simulated shifts, so no new simulation i
 ```bash
 python run_week8.py --run outputs/full          # all models, scenarios and heart-rate links
 python -m pytest -q                             # Week 7 checks + AI-generated edge cases
+pip install matplotlib                          # once, for the figures
+python make_figures.py --run outputs/full       # paper-ready figures + tables.md
 ```
 
 It adds random forest and gradient boosting, a second fold (validation and test swap roles),
