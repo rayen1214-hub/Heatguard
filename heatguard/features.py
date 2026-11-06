@@ -33,6 +33,7 @@ def _slope(s: pd.Series, window: int) -> pd.Series:
 def build_features(msgs: pd.DataFrame, weather_min: pd.DataFrame, worker: pd.Series) -> pd.DataFrame:
     f = pd.DataFrame({"minute": msgs["minute"].to_numpy()})
     hr = msgs["hr"].reset_index(drop=True)
+    hr = hr.where(hr.between(*C.HR_VALID_RANGE))         # implausible readings count as missing (F2)
     skin = msgs["skin_temp"].reset_index(drop=True)
     act = msgs["activity"].reset_index(drop=True)
     hr_ff = hr.ffill()                                   # forward fill = past values only

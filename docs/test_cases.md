@@ -21,7 +21,7 @@ Code: `tests/test_ai_cases.py`. "Proposed decision" is the AI's suggestion. The
 | AI-02 | Sensor faults | Wearable never connects (no heart rate from minute 0) | WBGT fallback from the first minute | Pass | Accept: realistic start-of-shift failure | |
 | AI-03 | Boundary | Stuck sensor: 4 vs 5 identical readings | 4 allowed, 5 flagged as stuck | Pass | Accept: checks the exact limit in `config.py` | |
 | AI-04 | Robustness | Week 7 model given a shift with no heart rate | Returns a probability, doesn't crash | **Fail (finding F1)** | Accept: real defect found | |
-| AI-05 | Data quality | Implausible heart rate (0 or 250 bpm) | Treated as missing, not used | **Fail (finding F2)** | Accept or modify: needs a group decision on the valid range | |
+| AI-05 | Data quality | Implausible heart rate (0 or 250 bpm) | Treated as missing, not used | Fail (F2), then pass after the fix | Accept or modify: needs a group decision on the valid range | |
 | AI-06 | Scoring | Warning 1 minute before onset | Counted, lead time 1 min | Pass | Accept: lower boundary of E1 | |
 | AI-07 | Scoring | Warning only at the onset minute | Counted as missed | Pass | Accept: a warning must come before danger | |
 | AI-08 | Scoring | Warning 31 min before onset (30-min horizon) | Missed, plus 1 false episode | Pass | Accept: upper boundary of the window | |
@@ -43,7 +43,8 @@ Code: `tests/test_ai_cases.py`. "Proposed decision" is the AI's suggestion. The
   code on `main` is unchanged. The test is marked "expected to fail" (`xfail`) so the finding stays visible.
 - **F2: no plausibility check on heart rate.** A 0 or 250 bpm reading goes straight into the
   features. Suggested fix, for the group to decide: treat readings outside 30–220 bpm as missing.
-  Not changed yet.
+  Fixed on branch `fix-hr-plausibility`: readings outside 30–220 bpm are treated as missing
+  (`HR_VALID_RANGE` in `config.py`). The range is a group decision and can be changed there.
 
 ## Part B: Manual cases (to be written by group members)
 

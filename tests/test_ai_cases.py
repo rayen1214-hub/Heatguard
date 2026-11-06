@@ -77,7 +77,6 @@ def test_AI04_model_handles_a_shift_with_no_heart_rate_at_all():
     assert len(p) == len(fd) and np.all((p >= 0) & (p <= 1))
 
 
-@pytest.mark.xfail(strict=True, reason="Finding F2: no plausibility filter on heart rate (docs/test_cases.md)")
 def test_AI05_implausible_heart_rate_values_are_flagged():
     """AI-05: readings of 0 or 250 bpm (loose strap, electrical spike) should not be used
     as if they were real. Expected: treated like missing readings."""
