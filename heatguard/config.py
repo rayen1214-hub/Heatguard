@@ -36,6 +36,7 @@ EPISODE_GAP_MIN = 5         # clear minutes needed before a new warning episode
 MAX_MISS_RATE = 0.05        # operating-point constraint on validation data
 HR_OFFLINE_AFTER_MIN = 2    # missing HR readings before fallback to WBGT
 HR_STUCK_AFTER_MIN = 5      # identical HR readings before "stuck sensor" flag
+HR_VALID_RANGE = (30, 220)  # bpm; readings outside are treated as missing (finding F2)
 
 # --- Simulated wearable noise (engineering assumptions, not device specs) ---
 HR_NOISE_SD = 3.0
