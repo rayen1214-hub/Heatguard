@@ -34,6 +34,22 @@ Use `--design full` for the full study size (30 workers × 60 dates, about 7 min
 `--test-weather` uses **synthetic** weather to check the code when Open-Meteo is unreachable.
 Its numbers must never be reported. Every output folder from it is labelled `_TEST_SYNTHETIC`.
 
+## Week 8 experiments (branch `week8-models`)
+
+Run after `run_pilot.py`; it reuses the simulated shifts, so no new simulation is needed:
+
+```bash
+python run_week8.py --run outputs/full          # all models, scenarios and heart-rate links
+python -m pytest -q                             # Week 7 checks + AI-generated edge cases
+pip install matplotlib                          # once, for the figures
+python make_figures.py --run outputs/full       # paper-ready figures + tables.md
+```
+
+It adds random forest and gradient boosting, a second fold (validation and test swap roles),
+all sensor scenarios, lead-time differences with 95% intervals, the weaker heart-rate link
+sensitivity test and E5 factor importance. Results go to `outputs/<run>/week8/`.
+The AI-generated vs manual test case comparison is in `docs/test_cases.md`.
+
 ## The six parts
 
 | # | Part | File | Owner |
