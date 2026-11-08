@@ -37,13 +37,24 @@ Week 8 numbers will be added after the real-weather run (Rayen, by 10 Nov).
 Danger events by split: 89 train, 22 validation, 4 test. ML threshold: 0.85, chosen on validation.
 Source: `docs/iteration_log.md` (3 Nov entries).
 
-## Week 8 (to be filled after the real run)
+## Week 8 (real weather, run 8 Nov 2026 on Rayen's laptop)
+
+Source for every number: `docs/results/week8_real_2026-11-08/` (tables.md, scores_week8.csv, README.md).
+Main comparison = each model + fallback vs WBGT, clean sensors, 30 min, heart-rate gain 25, both folds.
 
 | What | Value | Source |
 |------|-------|--------|
-| Danger events scored (two folds) | _pending_ | `outputs/full/week8/` |
-| Median paired lead-time difference ML − WBGT, 95% interval | _pending_ | |
-| Random forest / gradient boosting results | _pending_ | |
-| E5 most important factor group | _pending_ | |
-| Weaker heart-rate link (25 → 10 → 0 bpm/°C) | _pending_ | |
-| Decision latency per message (median, p95) | _pending_ | latency-measures branch |
+| Danger events scored (two folds) | 26 (22 validation + 4 test) | tables.md, Table A |
+| Missed events | WBGT 0; gradient boosting 7; logistic regression 7; random forest 14 | Table A |
+| Median lead time | WBGT 30 min; GB 19.5; LR 13.0; RF 0.0 | Table A |
+| False episodes per shift | WBGT 0.90; GB 0.19; LR 0.34; RF 0.47 | Table A |
+| Warning minutes per shift (of 360) | WBGT 287; GB 6; LR 10; RF 11 | Table A |
+| Paired lead difference ML − WBGT, median [95% interval] | LR −17 [−24.5, −6]; RF −30 [−30, −19]; GB −10.5 [−20, −6.5] | Table C |
+| Verdict (pre-declared rules) | Not supported: ML missed more events than WBGT | `docs/analysis_plan.md` |
+| Where the misses happen | All in fold B (threshold tuned on 4 events); fold A (tuned on 22) missed none of 4 | results README |
+| E5 most important factor group | Physiological (LR 0.29, RF 0.29); GB: environmental 0.38 ≈ physiological 0.37 | Table D |
+| Weaker heart-rate link (25 → 10 → 0 bpm/°C), missed of 26 | LR 7 → 10 → 11; RF 14 → 17 → 13; GB 7 → 1 → 11 | summary in results README |
+| Fallback with 10% / 30% missing HR (LR) | 2.65 / 12.8 false episodes per shift | Table B |
+| Decision latency per message | median 12.0 ms, p95 14.0 ms, max 198 ms | run_pilot.py output, 8 Nov |
+| Fault detection | dropout 1 min, stuck sensor 3 min, back to ML 1 min after fault | run_pilot.py output, 8 Nov |
+| Tests on main | 28 passed, 5 skipped (manual-case template), 1 expected failure (F1) | pytest, 8 Nov |

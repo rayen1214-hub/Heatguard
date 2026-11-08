@@ -30,3 +30,10 @@ recorded in `docs/iteration_log.md` with the reason.
 
 Sensor-fault scenarios (S5–S7), the 15-minute horizon, factor importance (E5), latency and
 fault-detection delay.
+
+## Outcome (added 8 Nov 2026, after the real run)
+
+**Not supported.** On the main comparison every model missed more danger events than the WBGT rule
+(7, 7 and 14 of 26 vs 0) and every lead-time interval was entirely below zero, while ML cut warning time
+from 287 to 6–11 minutes per shift. Exploratory breakdowns that were not pre-declared (by fold, by gain)
+are in `docs/results/week8_real_2026-11-08/README.md` and are reported as such.
