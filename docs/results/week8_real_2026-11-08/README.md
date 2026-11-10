@@ -45,6 +45,9 @@ so this is a lead for further work, not a result.
   With 22 validation events, 5% allows at most 1 miss, and every candidate threshold missed more, so the code
   used the threshold with the fewest misses (`heatguard/model.py`, `choose_threshold`). All other tunings met the limit.
   To look at in the Week 9 ML iteration.
+- Hand check of the lead-time scoring (Rayen, 10 Nov 2026): worker W021, 5 Sep 2025, clean sensors, onset minute 345.
+  The ML warning was already on at minute 315 (onset − 30), so lead = 345 − 315 = 30 min by hand;
+  `scores.csv` gives `lead_min` 30.0, not missed, for `ml` (and for `wbgt_rule` and `ml_fallback`). Matches.
 - Sensor faults (logistic regression, Table B): fallback keeps warnings available, but with 10% / 30%
   random missing heart rate it raised false episodes to 2.65 / 12.8 per shift (0.34 without faults).
 - E5: physiological inputs mattered most for logistic regression and random forest; environmental and
