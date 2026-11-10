@@ -40,6 +40,11 @@ so this is a lead for further work, not a result.
 
 - Danger events: train 89 (79 unacclimatised, 10 acclimatised), validation 22, test 4 (all unacclimatised).
 - Thresholds (gain 25): fold A logreg 0.85, RF 0.30, GB 0.30; fold B logreg 0.95, RF 0.80, GB 0.25.
+- Miss-limit check (`week8/thresholds_week8.csv`, checked by Rayen on 10 Nov 2026): the 5% miss limit could not
+  be met in 2 of 18 tunings, both gradient boosting in fold A (gain 25, threshold 0.30; gain 0, threshold 0.05).
+  With 22 validation events, 5% allows at most 1 miss, and every candidate threshold missed more, so the code
+  used the threshold with the fewest misses (`heatguard/model.py`, `choose_threshold`). All other tunings met the limit.
+  To look at in the Week 9 ML iteration.
 - Sensor faults (logistic regression, Table B): fallback keeps warnings available, but with 10% / 30%
   random missing heart rate it raised false episodes to 2.65 / 12.8 per shift (0.34 without faults).
 - E5: physiological inputs mattered most for logistic regression and random forest; environmental and
