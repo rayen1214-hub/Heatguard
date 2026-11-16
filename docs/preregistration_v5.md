@@ -1,8 +1,8 @@
-# HeatGuard v0.5 pre-registration (DRAFT, not yet approved)
+# HeatGuard v0.5 pre-registration (LOCKED)
 
-**Status:** draft written 16 Nov 2026, before any v0.5 result exists. When CR approves it after the
-Tuesday code walkthrough, it is renamed `docs/preregistration_v5.md` and committed. `run_v5.py final`
-refuses to start until that file is committed and unchanged, and it refuses to run a second time.
+**Status:** approved by CR on 16 Nov 2026, 22:47 Dubai time ("yes"), and committed before the
+single locked run. No 2024 test shift had been scored when this was committed. `run_v5.py final`
+refuses to start unless this file is committed and unchanged, and refuses to run a second time.
 
 The frame and the five decisions are in the research frame doc (Claude Docs, "HeatGuard research
 frame v2"), signed off by CR on 16 Nov 2026.
