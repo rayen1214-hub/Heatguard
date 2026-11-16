@@ -1,0 +1,7 @@
+{
+  "time": "2026-11-16 18:55:58",
+  "commit": "323cab087b44a78cfc7f0596c7d4c647ba1428cb",
+  "model": "logreg",
+  "threshold": 0.32,
+  "hold": 30
+}
