@@ -56,8 +56,10 @@ TRAIN_SEED, TEST_SEED = C.SEED + 500, C.SEED + 700       # different people in t
 MARGIN_M = 0.02                  # decision 2: sensitivity may be at most 2 points lower (CI bound)
 LEAD_MARGIN = 5.0                # H4
 H3_REDUCTION = 0.50              # H3: at least 50% fewer warning minutes
-TUNE_MAX_MISS = 0.01             # threshold rule: catch at least 99% of training events (out-of-fold)
-CANDIDATES = np.round(np.arange(0.02, 0.99, 0.02), 2)
+TUNE_BUFFER = 0.01               # threshold rule: miss rate at most (safest index rule's miss rate + 1 point)
+MODELS = ("logreg",)             # 17 Nov: random forest and gradient boosting never met the tuning limit
+CANDIDATES = np.round(np.arange(0.10, 0.61, 0.02), 2)   # 17 Nov run 2 chose 0.32; search around it
+HOLDS = (0, 15, 30)              # warning latch, minutes (chosen with the threshold on training workers)
 TRAIN_EVERY = 3                  # fit on every 3rd minute (neighbouring minutes are near copies)
 N_BOOT = 2000
 SCENARIOS = ["clean", "S5_dropout", "S6_stuck"]
@@ -137,10 +139,28 @@ def worker_row(wk, wid):
     return w
 
 
+EXTRA = ["minute_of_day", "heat_index", "heat_index_mean60", "pace_gap15", "hr_rise", "skin_rise"]
+FEATS = features.ALL_FEATURES + EXTRA
+
+
+def add_extra(feats, traj, worker):
+    """Inputs added on training workers only (17 Nov iteration, see the pre-registration):
+    all use past or current values only."""
+    f = feats
+    f["minute_of_day"] = traj["minute"].to_numpy()
+    f["heat_index"] = traj["heat_index"].to_numpy()
+    f["heat_index_mean60"] = traj["heat_index"].rolling(60, min_periods=1).mean().to_numpy()
+    planned = float(worker["work_rate_wm2"]) / 58.15                 # planned pace in met
+    f["pace_gap15"] = planned - f["act_mean15"]                      # how much slower than planned
+    f["hr_rise"] = (f["hr_mean15"] - f["hr_mean15"].cummin()).fillna(0)
+    f["skin_rise"] = (f["skin_mean15"] - f["skin_mean15"].cummin()).fillna(0)
+    return f
+
+
 def shift_inputs(traj, worker, scenario):
     seed = C.SEED + zlib.crc32(f"{worker['worker_id']}|{traj['date'].iloc[0]}".encode()) % 10_000
     msgs = wearables.inject_fault(wearables.make_messages(traj, worker, seed), scenario, seed, worker=worker, traj=traj)
-    feats = features.build_features(msgs, traj[["wbgt", "tdb", "rh"]], worker)
+    feats = add_extra(features.build_features(msgs, traj[["wbgt", "tdb", "rh"]], worker), traj, worker)
     rule = baseline.wbgt_rule(traj["wbgt"], traj["met_wm2"], worker)
     return feats, rule
 
@@ -161,50 +181,69 @@ def fit(model_name, shifts):
     y = pd.concat([s["y"].iloc[::TRAIN_EVERY] for s in shifts], ignore_index=True)
     keep = y.notna()
     m = week8.make_model(model_name)
-    m.fit(X.loc[keep, features.ALL_FEATURES], y[keep])
+    m.fit(X.loc[keep, FEATS], y[keep])
     return m
 
 
-def hg_alert(prob, thr, s):
+def hg_alert(prob, thr, s, hold=0):
+    """HG warning. `hold` keeps a warning on for that many minutes after the last trigger
+    (a latch), so the wearable does not flicker on and off; it only looks at past minutes."""
     pol = alerts.run_policies(prob, thr, s["rule"]["wbgt_alert"], s["feats"])
-    return v5.heatguard_alert(pol["ml_fallback"].to_numpy(), s["traj"])
+    a = pol["ml_fallback"]
+    if hold:
+        a = a.rolling(hold + 1, min_periods=1).max()
+    return v5.heatguard_alert(a.to_numpy(), s["traj"])
 
 
-def choose_threshold(probs, shifts):
-    """Fewest false episodes (then fewest warning minutes) among thresholds that catch at least
-    99% of tuning events with median lead >= 25 min. Same idea as Week 9, written before any test run."""
+def choose_threshold(probs, shifts, max_miss):
+    """Fewest false episodes (then fewest warning minutes) among thresholds whose out-of-fold miss
+    rate is at most `max_miss` (the safest index rule on the same training shifts + 1 point, half of
+    M) with median lead >= 25 min. Written before any test run."""
     rows_ = []
-    for t in CANDIDATES:
-        sc = pd.DataFrame([evaluate.score_shift(hg_alert(p, t, s), s["onset"], HORIZON) for p, s in zip(probs, shifts)])
-        rows_.append({"threshold": t, **evaluate.summarise(sc)})
+    for hold in HOLDS:
+        for t in CANDIDATES:
+            sc = pd.DataFrame([evaluate.score_shift(hg_alert(p, t, s, hold), s["onset"], HORIZON)
+                               for p, s in zip(probs, shifts)])
+            rows_.append({"threshold": t, "hold": hold, **evaluate.summarise(sc)})
     table = pd.DataFrame(rows_).drop(columns=["lead_iqr"])
-    ok = table[(table["miss_rate"] <= TUNE_MAX_MISS) & (table["median_lead"] >= HORIZON - LEAD_MARGIN)]
+    ok = table[(table["miss_rate"] <= max_miss) & (table["median_lead"] >= HORIZON - LEAD_MARGIN)]
     if len(ok):
         best, met = ok.sort_values(["false_per_shift", "warning_min_per_shift"]).iloc[0], True
     else:
         best, met = table.sort_values(["miss_rate", "median_lead"], ascending=[True, False]).iloc[0], False
-    return float(best["threshold"]), met, table
+    return (float(best["threshold"]), int(best["hold"])), met, table
 
 
 # ---------------------------------------------------------------- STAGE 2: model choice (training workers only)
 def stage_select(out):
-    wk, ix, groups, _ = load_set("train", out)
+    wk, ix, groups, twl_h = load_set("train", out)
     shifts = rows(wk, ix, groups)
     wids = np.array([s["worker_id"] for s in shifts])
     log(f"out-of-fold selection on {len(shifts)} training shifts, {sum(s['onset'] is not None for s in shifts)} events")
+    rule_miss = {}
+    for c in ("c2_heat_index", "c3_twl", "c4_wbgt"):
+        sc = []
+        for s in shifts:
+            comp = v5.comparator_alerts(s["traj"], s["worker"], v5.twl_minutes(twl_h, s["traj"]["timestamp"]),
+                                        s["rule"]["wbgt_alert"].to_numpy())
+            sc.append(evaluate.score_shift(comp[c].to_numpy(), s["onset"], HORIZON))
+        rule_miss[c] = evaluate.summarise(pd.DataFrame(sc))["miss_rate"]
+    max_miss = min(rule_miss.values()) + TUNE_BUFFER
+    log(f"training miss rates of the rules: {rule_miss}; HeatGuard tuning limit: {max_miss:.3f}")
     results, oof_all = [], {}
-    for name in week8.MODELS:
+    for name in MODELS:
         probs = [None] * len(shifts)
         for k, (tr, te) in enumerate(GroupKFold(n_splits=5).split(wids, groups=wids)):
             m = fit(name, [shifts[i] for i in tr])
             for i in te:
-                probs[i] = m.predict_proba(shifts[i]["feats"][features.ALL_FEATURES])[:, 1]
+                probs[i] = m.predict_proba(shifts[i]["feats"][FEATS])[:, 1]
             log(f"  {name}: fold {k + 1}/5 done")
-        thr, met, table = choose_threshold(probs, shifts)
+        thr, met, table = choose_threshold(probs, shifts, max_miss)
         table.insert(0, "model", name)
         table.to_csv(out / f"select_{name}_thresholds.csv", index=False)
-        best = table[table["threshold"] == thr].iloc[0].to_dict()
-        results.append({"model": name, "threshold": thr, "constraint_met": met, **best})
+        thr, hold = thr
+        best = table[(table["threshold"] == thr) & (table["hold"] == hold)].iloc[0].to_dict()
+        results.append({**best, "model": name, "threshold": thr, "hold": hold, "constraint_met": met})
         oof_all[name] = probs
     res = pd.DataFrame(results)
     # Rule written before running: among models meeting the constraint, fewest warning minutes per shift
@@ -212,8 +251,9 @@ def stage_select(out):
     primary = (ok if len(ok) else res).sort_values("warning_min_per_shift").iloc[0]
     res["primary"] = res["model"] == primary["model"]
     res.to_csv(out / "select_summary.csv", index=False)
-    (out / "select.json").write_text(json.dumps({"primary_model": primary["model"]}, indent=2))
-    log("selection (training workers only, out-of-fold):\n" + res[["model", "threshold", "constraint_met", "missed",
+    (out / "select.json").write_text(json.dumps({"primary_model": primary["model"], "rule_miss_train": rule_miss,
+                                                  "max_miss": max_miss, "features": FEATS}, indent=2))
+    log("selection (training workers only, out-of-fold):\n" + res[["model", "threshold", "hold", "constraint_met", "missed",
         "events", "median_lead", "false_per_shift", "warning_min_per_shift", "primary"]].to_string(index=False))
 
 
@@ -291,14 +331,14 @@ def judge(scores):
     return out
 
 
-def score_set(wk, ix, groups, twl_h, model, thr):
+def score_set(wk, ix, groups, twl_h, model, thr, hold=0):
     scores = []
     for sc in SCENARIOS:
         for s in rows(wk, ix, groups, sc):
-            prob = model.predict_proba(s["feats"][features.ALL_FEATURES])[:, 1]
+            prob = model.predict_proba(s["feats"][FEATS])[:, 1]
             comp = v5.comparator_alerts(s["traj"], s["worker"], v5.twl_minutes(twl_h, s["traj"]["timestamp"]),
                                         s["rule"]["wbgt_alert"].to_numpy())
-            pols = {"hg": hg_alert(prob, thr, s), **{c: comp[c].to_numpy() for c in
+            pols = {"hg": hg_alert(prob, thr, s, hold), **{c: comp[c].to_numpy() for c in
                     ("c1_ban", "c2_heat_index", "c3_twl", "c4_wbgt")}}
             for p, a in pols.items():
                 scores.append({"worker_id": s["worker_id"], "date": s["date"], "scenario": sc, "policy": p,
@@ -326,11 +366,12 @@ def stage_final(out, smoke=False):
     wk, ix, groups, _ = load_set("train", out)
     shifts = rows(wk, ix, groups)
     # Threshold: the out-of-fold choice from stage 2 (training workers only); final model fitted on all of them
-    thr = float(pd.read_csv(out / "select_summary.csv").set_index("model").loc[name, "threshold"])
+    chosen = pd.read_csv(out / "select_summary.csv").set_index("model").loc[name]
+    thr, hold = float(chosen["threshold"]), int(chosen["hold"])
     model = fit(name, shifts)
-    log(f"primary model {name}, threshold {thr}; scoring the locked 2024 test set (once)")
+    log(f"primary model {name}, threshold {thr}, hold {hold} min; scoring the locked 2024 test set (once)")
     wk_t, ix_t, groups_t, twl_t = load_set("test", out)
-    scores = score_set(wk_t, ix_t, groups_t, twl_t, model, thr)
+    scores = score_set(wk_t, ix_t, groups_t, twl_t, model, thr, hold)
     scores.to_csv(out / "final_scores.csv", index=False)
     res = judge(scores)
     (out / "final_verdict.json").write_text(json.dumps(res, indent=2, default=str))
@@ -340,7 +381,7 @@ def stage_final(out, smoke=False):
     if not smoke:
         commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
         lock.write_text(json.dumps({"time": time.strftime("%Y-%m-%d %H:%M:%S"), "commit": commit,
-                                    "model": name, "threshold": thr}, indent=2))
+                                    "model": name, "threshold": thr, "hold": hold}, indent=2))
     log("RESULT:\n" + summ.loc["clean"][["events", "missed", "median_lead", "false_per_shift",
                                           "warning_min_per_shift"]].to_string())
     log(f"VERDICT: {res['verdict']}")

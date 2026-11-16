@@ -32,19 +32,46 @@ Comparators use each worker's own work rate and acclimatisation and are computed
 - Body: ISO 7933 (PHS) minute by minute, plus documented differences between people (F14):
   resting core temperature (SD 0.2 °C), share of sweat replaced by drinking (50–90%), and
   0.10–0.20 °C extra core temperature per 1% body mass lost (Sawka et al. 2007).
+- Self-pacing (added 16 Nov after the realism check failed): each worker eases off to 65% of
+  their work rate once their core temperature passes their own pace point (mean 37.7 °C, SD
+  0.15), and goes back to full pace 0.15 °C lower (Miller et al. 2011; Bates & Schneider 2008).
+  The two numbers were tuned on separate calibration workers (2025 weather) so that worker-days
+  passing 38.0 / 38.3 / 38.5 °C match field data. Training set result: **45 / 18 / 6 %**
+  vs **44 / 16 / 6 %** in Guatemalan field workers (Adgate et al. 2025). Without pacing it was
+  74 / 53 / 41 %; that data set was discarded without being scored.
 - Danger event: adjusted rectal temperature reaches 38.2 °C (38.5 °C if acclimatised) during work.
-- Training: 200 workers × 30 random dates of summer 2025 (real ERA5 Dubai weather).
+- Training: 200 workers × 30 random dates of summer 2025 (real ERA5 Dubai weather): 6,000 shifts,
+  937 danger events.
 - Locked test: 100 different workers × 40 random dates of summer **2024** (real ERA5 Dubai
   weather). Simulated before the run, never scored before it.
 
 ## Model and threshold (chosen on training workers only)
 
-- Out-of-fold over 5 groups of training workers, for logistic regression, random forest and
-  gradient boosting (Week 8 inputs).
-- Threshold rule: among thresholds 0.02–0.98 that catch at least 99% of training events with a
-  median lead of at least 25 min, the one with the fewest false episodes, then fewest warning minutes.
+- Out-of-fold over 5 groups of training workers. Selection runs 1 and 2 tried logistic regression,
+  random forest and gradient boosting; only logistic regression ever met the tuning limit, so run 3
+  (the one used) has logistic regression only.
+- Inputs: the Week 8 inputs plus six added on training workers only (time of day, Heat Index now
+  and over 60 min, how much slower than planned the worker is moving, heart-rate and skin rise
+  since the start of the shift). All use past or current readings only.
+- Threshold rule: among thresholds 0.005–0.98 whose out-of-fold miss rate is at most the safest
+  index rule's miss rate on the same training shifts **plus 1 point** (half of M; here 3.6%), with a median
+  lead of at least 25 min, the one with the fewest false episodes, then fewest warning minutes.
+  The search covers thresholds 0.10–0.60 and a warning hold of 0, 15 or 30 min (once on, the
+  warning stays on that long after the last trigger, so the wearable does not flicker).
+- **Chosen on training workers (run 3): logistic regression, threshold 0.32, hold 30 min.**
+
+| Training workers, out-of-fold (937 events) | Missed | Warning min / shift | False episodes / shift |
+|---|---|---|---|
+| HeatGuard (0.32, hold 30) | 33 (3.5%) | 162 | 1.12 |
+| C4 WBGT | 24 (2.6%) | 489 | 1.67 |
+| C2 Heat Index | 44 (4.7%) | 408 | 1.56 |
+| C3 TWL | 776 (83%) | 14 | 0.22 |
+
+These are training numbers, shown so the test can be judged against them; they are not results.
 - Primary model: among models that meet that rule, the one with the fewest warning minutes per shift.
 - The primary model is then fitted on all training workers and scored once on the locked test set.
+- Test set size: 100 workers × 40 dates = 4,000 shifts. With self-pacing there will be fewer than the
+  ~1,000 events planned (training rate suggests roughly 600). M = 2 points stays as decided.
 
 ## Hypotheses and pass rules (locked test set, clean sensors unless stated)
 
@@ -79,8 +106,13 @@ exact counts.
 1. **H1 is easy by construction.** C1 never warns, so its sensitivity is 0 and H1 only shows that
    HG catches some events. The useful number is how many events still happen under the calendar
    rule (late morning, afternoon, June and late-September days) and how many of them HG catches.
-2. **Threshold rule 99% instead of 100%.** With ~1,500 training events, "catch every single one"
-   would force a very low threshold driven by a few odd shifts.
+2. **Threshold rule changed, on training workers only.** The first selection run asked HeatGuard
+   to catch 99% of training events. No model could (best: logistic regression missed 2.3% even at
+   the lowest threshold), and on the same training shifts the rules miss too (WBGT 2.6%, Heat
+   Index 4.7%, TWL 83%). So the limit is now tied to the safest rule (+1 point), which is what H2
+   tests. Six inputs and a warning hold were added, because run 2 gave more alarm episodes than the
+   rules (3.5 vs 1.6 per shift, warnings flickering on and off). All of this used training workers
+   only; the 2024 test set is still untouched.
 3. **TWL is our own implementation** of the published definition (ISO 7933 heat balance, core
    38.2 °C, sweat 1.2 kg/h). Against three published field values it is −1%, +5% and +23% off.
 4. **Heat Index formula:** the US NWS (Rothfusz) formula; Dubai's guideline gives bands but not
