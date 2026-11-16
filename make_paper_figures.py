@@ -25,7 +25,7 @@ plt.rcParams.update({"font.family": "serif", "font.serif": ["Liberation Serif", 
 
 
 def fig1():
-    fig, ax = plt.subplots(figsize=(3.5, 3.05))
+    fig, ax = plt.subplots(figsize=(3.5, 2.7))
     ax.set_xlim(0, 100), ax.set_ylim(0, 100), ax.axis("off")
 
     def box(x, y, w, h, text, warm=False, bold=False):
@@ -64,7 +64,7 @@ def fig2():
     s = s[s["scenario"] == "clean"].set_index("policy")
     names = {"c2_heat_index": "C2 Heat Index", "c3_twl": "C3 TWL", "c4_wbgt": "C4 WBGT", "hg": "HeatGuard"}
     offsets = {"c2_heat_index": (-14, 10, "right"), "c3_twl": (10, 0, "left"), "c4_wbgt": (-9, -3, "right"), "hg": (0, 16, "center")}
-    fig, ax = plt.subplots(figsize=(3.5, 2.35))
+    fig, ax = plt.subplots(figsize=(3.5, 2.05))
     for k, name in names.items():
         x, y = s.loc[k, "warning_min_per_shift"], 100 * s.loc[k, "miss_rate"]
         hg = k == "hg"

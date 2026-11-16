@@ -1,0 +1,22 @@
+{
+  "S5_dropout": {
+    "shifts": 500,
+    "mean_extra_minutes": 41.8,
+    "of_which_fault_and_hold": 21.6,
+    "of_which_stale_trend_window": 1.7,
+    "of_which_rest_of_day": 18.4,
+    "share_of_shifts_with_baseline_lowered_by_more_than_1_bpm": 0.364,
+    "rest_of_day_extra_when_baseline_lowered": 47.9,
+    "rest_of_day_extra_when_not": 1.5
+  },
+  "S6_stuck": {
+    "shifts": 500,
+    "mean_extra_minutes": 48.7,
+    "of_which_fault_and_hold": 23.2,
+    "of_which_stale_trend_window": 2.0,
+    "of_which_rest_of_day": 23.5,
+    "share_of_shifts_with_baseline_lowered_by_more_than_1_bpm": 0.422,
+    "rest_of_day_extra_when_baseline_lowered": 54.5,
+    "rest_of_day_extra_when_not": 0.9
+  }
+}

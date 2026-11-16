@@ -310,6 +310,47 @@ def stage_latency():
     log(f"P9: {res}")
 
 
+def stage_faultdiag():
+    """NOT in the committed plan: added on 17 Nov after P8 showed extra warnings after sensor faults.
+    Splits the extra warning minutes of every 8th test shift into three windows after the fault starts
+    at minute 60: (a) the fault itself plus the 30-minute hold, (b) the next 15 minutes plus hold, while
+    the 15-minute heart-rate trend still contains stale readings, (c) the rest of the day, where only
+    the lowered 'lowest heart rate so far today' baseline can still act."""
+    model, thr, hold, _ = locked_model()
+    wk_t, ix_t, groups_t, _ = R.load_set("test", R.OUT)
+    rows, fault_len = [], {"S5_dropout": 10, "S6_stuck": 15}
+    for r in ix_t[ix_t["valid"]].iloc[::8].itertuples(index=False):
+        traj, worker = groups_t[(r.worker_id, r.date)], R.worker_row(wk_t, r.worker_id)
+        end = len(traj) if pd.isna(r.onset) else int(r.onset)
+        got = {}
+        for scen in ("clean", "S5_dropout", "S6_stuck"):
+            feats, rule = R.shift_inputs(traj, worker, scen)
+            prob = model.predict_proba(feats[R.FEATS])[:, 1]
+            got[scen] = (np.asarray(R.hg_alert(prob, thr, dict(traj=traj, worker=worker, feats=feats, rule=rule), hold)),
+                         float(feats["hr_mean15"].min()))
+        for scen, n in fault_len.items():
+            extra = (got[scen][0] - got["clean"][0])[:end]
+            a_end, b_end = 60 + n + hold, 60 + n + 15 + hold
+            rows.append({"scenario": scen, "total": extra.sum(), "fault_and_hold": extra[60:a_end].sum(),
+                         "stale_trend": extra[a_end:b_end].sum(), "rest_of_day": extra[b_end:].sum(),
+                         "baseline_drop_bpm": got["clean"][1] - got[scen][1]})
+    d = pd.DataFrame(rows)
+    res = {}
+    for scen, g in d.groupby("scenario"):
+        low = g["baseline_drop_bpm"] > 1.0
+        res[scen] = {"shifts": int(len(g)), "mean_extra_minutes": round(float(g["total"].mean()), 1),
+                     "of_which_fault_and_hold": round(float(g["fault_and_hold"].mean()), 1),
+                     "of_which_stale_trend_window": round(float(g["stale_trend"].mean()), 1),
+                     "of_which_rest_of_day": round(float(g["rest_of_day"].mean()), 1),
+                     "share_of_shifts_with_baseline_lowered_by_more_than_1_bpm": round(float(low.mean()), 3),
+                     "rest_of_day_extra_when_baseline_lowered": round(float(g.loc[low, "rest_of_day"].mean()), 1),
+                     "rest_of_day_extra_when_not": round(float(g.loc[~low, "rest_of_day"].mean()), 1)}
+    out = _safe(PH / "analyse")
+    d.to_csv(out / "fault_diagnostic.csv", index=False)
+    (out / "fault_diagnostic.json").write_text(json.dumps(res, indent=2))
+    log(f"fault diagnostic (not in the plan): {res}")
+
+
 if __name__ == "__main__":
     {"data": stage_data, "analyse": stage_analyse, "f15": stage_f15, "f11": stage_f11,
-     "latency": stage_latency}[sys.argv[1]]()
+     "latency": stage_latency, "faultdiag": stage_faultdiag}[sys.argv[1]]()
