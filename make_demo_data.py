@@ -1,6 +1,7 @@
 """Build the live demo page (docs/demo/heatguard_demo.html).
 
     python make_demo_data.py            # needs outputs/v5 (the locked sets); writes docs/demo/
+    python make_demo_data.py --page     # only rebuild the page from template.html, engine.js and the stored data
 
 The page runs the HeatGuard alert engine IN THE BROWSER (docs/demo/engine.js): each simulated
 wearable message goes through the same inputs, model, sensor check, fallback, hold and ceiling as
@@ -9,6 +10,7 @@ plus the Python engine's own output for those shifts so that `node docs/demo/che
 prove both engines agree. It reads outputs/v5 and never writes there.
 """
 import json
+import sys
 import zlib
 from pathlib import Path
 
@@ -34,7 +36,16 @@ def r(a, nd):
     return [None if not np.isfinite(x) else round(float(x), nd) for x in np.asarray(a, dtype=float)]
 
 
+def build_page(data):
+    html = (DEST / "template.html").read_text()
+    html = html.replace("/*__ENGINE__*/", (DEST / "engine.js").read_text()).replace("__DATA__", json.dumps(data, separators=(",", ":")))
+    (DEST / "heatguard_demo.html").write_text(html)
+    print("written", DEST / "heatguard_demo.html", f"({len(html) // 1024} KB); board date {data['board_date']}")
+
+
 def main():
+    if "--page" in sys.argv:
+        return build_page(json.loads((DEST / "demo_reference.json").read_text())["data"])
     sel = pd.read_csv(OUT / "select_summary.csv").set_index("model").loc["logreg"]
     thr, hold = float(sel["threshold"]), int(sel["hold"])
     wk, ix, groups, _ = R.load_set("train", OUT)
@@ -92,10 +103,7 @@ def main():
     DEST.mkdir(parents=True, exist_ok=True)
     data = {"model": mjson, "board_date": board_date, "shifts": shifts}
     (DEST / "demo_reference.json").write_text(json.dumps({"data": data, "ref": ref}, separators=(",", ":")))
-    html = (DEST / "template.html").read_text()
-    html = html.replace("/*__ENGINE__*/", (DEST / "engine.js").read_text()).replace("__DATA__", json.dumps(data, separators=(",", ":")))
-    (DEST / "heatguard_demo.html").write_text(html)
-    print("written", DEST / "heatguard_demo.html", f"({len(html) // 1024} KB); board date {board_date}")
+    build_page(data)
 
 
 if __name__ == "__main__":

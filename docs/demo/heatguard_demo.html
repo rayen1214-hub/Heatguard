@@ -1,4 +1,4 @@
-<title>HeatGuard Live Console</title>
+<title>HeatGuard Shift Replay</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,6 +78,7 @@ header, section { display: grid; gap: 10px; min-width: 0; }
 .chip.alert { color: #fff; background: var(--c-hg); border-color: var(--c-hg); }
 .riskbar { position: relative; height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
 .riskbar i { position: absolute; inset: 0 auto 0 0; background: var(--c-hg); border-radius: 3px; }
+.riskbar.off i { background: var(--faint); }
 .riskbar u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--fg); opacity: .7; }
 .tile .meta { display: flex; justify-content: space-between; gap: 6px; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .tile .meta .hot { color: var(--danger); }
@@ -129,6 +130,7 @@ header, section { display: grid; gap: 10px; min-width: 0; }
 .why .cap { font-size: 11.5px; color: var(--faint); }
 
 .main { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.jump { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .chartbox { position: relative; }
 canvas { width: 100%; display: block; }
 .tip { position: absolute; pointer-events: none; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; font-family: var(--f-mono); line-height: 1.5; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 2; }
@@ -249,6 +251,10 @@ tr.extra td { color: var(--muted); }
 
       <div class="main">
         <div class="panel">
+          <div class="jump">
+            <button class="btn" id="j-warn" type="button">Go to first warning</button>
+            <button class="btn" id="j-event" type="button">Go to danger event</button>
+          </div>
           <div class="chartbox">
             <canvas id="chart" height="392" aria-label="Core temperature, HeatGuard risk and each rule's warnings over the shift"></canvas>
             <div class="tip" id="tip" hidden></div>
@@ -479,7 +485,7 @@ function buildBoard() {
     const b = document.createElement("button");
     b.className = "tile"; b.type = "button"; b.id = "tile-" + s.code;
     b.innerHTML = `<span class="top"><span class="id">${s.worker}</span><span class="chip" data-r="chip"></span></span>
-      <span class="riskbar"><i data-r="risk"></i><u style="left:${MODEL.threshold * 100}%"></u></span>
+      <span class="riskbar" data-r="bar"><i data-r="risk"></i><u style="left:${MODEL.threshold * 100}%"></u></span>
       <span class="meta"><span data-r="hr"></span><span data-r="core"></span></span>
       <span class="out" data-r="out"></span>`;
     b.addEventListener("click", () => select(s.code));
@@ -496,6 +502,7 @@ function renderBoard(m) {
     chip.className = "chip" + (alert ? " alert" : ph === "w" ? " ok" : "");
     chip.textContent = ph === "b" ? "Legal break" : alert ? "Stop · rest" : ph === "r" ? "Rest" : "OK";
     q("risk").style.width = (Math.min(1, run.prob[m]) * 100).toFixed(1) + "%";
+    q("bar").classList.toggle("off", run.fallback[m] === 1);
     q("hr").textContent = run.hr[m] != null ? run.hr[m].toFixed(0) + " bpm" : "no reading";
     const core = q("core"); core.textContent = "core* " + (s.core[m] != null ? s.core[m].toFixed(1) : "–"); core.classList.toggle("hot", s.core[m] != null && s.core[m] >= s.limit);
     const out = q("out");
@@ -503,7 +510,7 @@ function renderBoard(m) {
       const lead = caught(s, "hg");
       out.className = "out " + (lead ? "caught" : "missed");
       out.textContent = `Danger at ${fmtTime(s.onset)} · ${lead ? "warned " + lead + " min before" : "no warning in time"}`;
-    } else if (run.fallback[m]) { out.className = "out fault"; out.textContent = "Sensor fault · using WBGT rule"; }
+    } else if (run.fallback[m]) { out.className = "out fault"; out.textContent = (run.hr[m] == null ? "No heart rate" : "Heart rate frozen") + " · WBGT rule decides"; }
     else { out.className = "out"; out.textContent = s.acclimatised ? "" : "new to the heat"; }
     hgNow += alert ? 1 : 0; wbNow += on(s.c4, m) ? 1 : 0; hiNow += on(s.c2, m) ? 1 : 0;
     hgMin += minutesSoFar(s, "hg", m); wbMin += minutesSoFar(s, "c4", m); hiMin += minutesSoFar(s, "c2", m);
@@ -569,10 +576,11 @@ function render() {
   if (ph === "b") { w.className = "watch rest"; $("w-state").textContent = "BREAK"; $("w-sub").textContent = "legal midday break"; }
   else if (run.alert[m]) { w.className = "watch alert"; $("w-state").textContent = "STOP"; $("w-sub").textContent = "rest in shade · drink"; }
   else if (ph === "r") { w.className = "watch rest"; $("w-state").textContent = "REST"; $("w-sub").textContent = "planned shade rest"; }
-  else { w.className = "watch ok"; $("w-state").textContent = "OK"; $("w-sub").textContent = "risk " + run.prob[m].toFixed(2); }
+  else { w.className = "watch ok"; $("w-state").textContent = "OK"; $("w-sub").textContent = faulty ? "WBGT rule says OK" : "risk " + run.prob[m].toFixed(2); }
   const fb = $("fallback"); fb.hidden = !faulty;
-  if (faulty) fb.textContent = step.mode === "UNAVAILABLE" ? "No heart rate and no weather reading: warning stays on until someone checks." : "Heart-rate reading not trusted: using the WBGT rule until it returns.";
+  if (faulty) fb.textContent = step.mode === "UNAVAILABLE" ? "No heart rate and no weather reading: warning stays on until someone checks." : (run.hr[m] == null ? "No heart-rate reading." : "Heart-rate reading is frozen, so it is not trusted.") + " The model's risk is not used: the WBGT rule decides until readings return. Check the strap and the device.";
   $("f-drop").disabled = $("f-stuck").disabled = m >= N - 1;
+  $("j-warn").disabled = !run.alert.includes(1); $("j-event").disabled = s.onset == null;
   renderWhy(step); drawTally(s, m); writeStory(s); drawChart(s, run, m); renderBoard(m);
 }
 function drawTally(s, m) {
@@ -683,6 +691,8 @@ function tick(t) {
 $("play").addEventListener("click", () => { if (minute >= N - 1) minute = 0; setPlaying(!playing); });
 $("reset").addEventListener("click", () => { minute = 0; setPlaying(false); render(); });
 $("scrub").addEventListener("input", (e) => { minute = +e.target.value; render(); });
+$("j-warn").addEventListener("click", () => { const k = runs[sel].alert.indexOf(1); if (k >= 0) { minute = k; setPlaying(false); render(); } });
+$("j-event").addEventListener("click", () => { const k = BY[sel].onset; if (k != null) { minute = k; setPlaying(false); render(); } });
 document.querySelectorAll("[data-speed]").forEach((b) => b.addEventListener("click", () => {
   speed = +b.dataset.speed; document.querySelectorAll("[data-speed]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
 }));

@@ -1,93 +1,140 @@
-# HeatGuard prototype (v0.1)
+# HeatGuard prototype (v0.5)
 
-CSIT305 Research and Innovation Project, UOW Dubai, Autumn 2026.
+CSIT305 Research and Innovation Project, University of Wollongong in Dubai, Autumn 2026.
 
-HeatGuard is a **simulation testbed**. It creates virtual outdoor workers on real Dubai summer
-mornings (Jun–Sep 2025), uses the ISO 7933 Predicted Heat Strain (PHS) model as the hidden
-"body", and compares two ways of warning before a worker reaches the danger limit:
+HeatGuard is an early warning for heat strain in outdoor workers. It reads a worker's wearable
+(heart rate, skin temperature, movement) and the weather once a minute, estimates the risk that
+the worker reaches a dangerous core temperature within 30 minutes, and tells that worker to stop
+and rest. If the heart-rate sensor fails, it falls back to the WBGT rule, so it never shows "safe"
+when it cannot see.
 
-- the **WBGT rule** (NIOSH alert/exposure limits), used on worksites today, and
-- an **ML model** that only sees simulated wearable messages and weather.
+This repository is a **simulation testbed**, not a field trial. Virtual workers (ISO 7933
+Predicted Heat Strain model, with documented differences between people and self-pacing) work
+full UAE summer days on real ERA5 Dubai weather. HeatGuard is compared with the rules a UAE site
+can already use. The true core temperature goes only to the scorer, never to any warning method.
 
-Both methods run on exactly the same shifts. The true core temperature goes only to the scorer.
+## Result in one table (locked test, run once on 16 Nov 2026)
+
+100 new workers × 40 days of summer 2024 = 4,000 shifts, 720 danger events. Every option keeps
+the legal midday break. The plan was committed before the run (`docs/preregistration_v5.md`).
+
+| Option | Missed of 720 | Warning minutes per shift | False alarm episodes per shift |
+|---|---|---|---|
+| Midday break only | 720 | 0 | 0.00 |
+| + Heat Index ≥ 40 (US NWS formula) | 26 | 446 | 1.53 |
+| + Thermal Work Limit | 559 | 17 | 0.23 |
+| + WBGT (NIOSH limits) | 5 | 493 | 1.61 |
+| **+ HeatGuard** | **8** | **163** | **1.08** |
+
+Verdict under the rule fixed beforehand: **gap closed**. HeatGuard is as safe as each rule
+(within the 2-point margin) with about two thirds fewer warning minutes than WBGT or Heat Index.
+It is **not** safer than WBGT (8 missed against 5). Full tables: `docs/results/v5_locked_2026-11-16/`.
+Extra checks made after the locked run, including Dubai's own Heat Index chart, a stress test and
+other random seeds: `docs/results/v5_posthoc_2026-11-17/`. They are labelled exploratory and do
+not change the verdict.
+
+## What this prototype does not show
+
+- It does not show that real workers would be safer. The workers are simulated; the simulation
+  is compared with published field averages, and it runs hotter and harder than the UAE field
+  study (see the extra checks).
+- Heart rate, skin temperature and movement are generated from the same simulated body that
+  produces the danger events, so the model's best inputs are partly circular.
+- There is no physical device and no message broker. Faults are injected into the messages.
+
+See Section VIII of the paper and `docs/decisions.md`.
 
 ## Run it
 
 ```bash
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest -q                                    # 9 checks; all must pass
-python run_pilot.py --fetch                            # downloads real weather, runs the pilot (~30 s)
-streamlit run dashboard.py                             # opens the demo in the browser
+python -m pytest -q                                    # all automated checks
+python run_v5.py smoke                                 # code check on synthetic weather (numbers mean nothing)
 ```
 
-**Intel Mac (or a "Failed building wheel for llvmlite" error):** recent numba has no ready-made
-package for Intel Macs, so use Anaconda instead of `venv`:
+The v0.5 study itself has three stages. Each one only reads what the stage before wrote.
 
 ```bash
-conda create -n heatguard -c conda-forge python=3.12 numba scipy -y
+python run_v5.py data      # simulate 6,000 training shifts (2025) and 4,000 test shifts (2024): about 50 min on 4 cores
+python run_v5.py select    # choose the model and threshold on training workers only
+python run_v5.py final     # the single locked test run
+```
+
+`final` refuses to start unless `docs/preregistration_v5.md` is committed, and refuses to run a
+second time (lock file `outputs/v5/FINAL_RUN_DONE.json`). The reported run is the one of
+16 Nov 2026. To reproduce the numbers on another machine, use a fresh clone.
+
+```bash
+python posthoc_v5.py data      # extra simulations for the stress test and other seeds (about 80 min)
+python posthoc_v5.py analyse   # Dubai chart rule, uncatchable events, alarm burden, inputs, field averages
+python posthoc_v5.py f15       # stress test
+python posthoc_v5.py f11       # other random seeds
+python posthoc_v5.py latency   # time per message
+```
+
+**Intel Mac (or a "Failed building wheel for llvmlite" error):** use Anaconda instead of `venv`:
+
+```bash
+conda create -n heatguard -c conda-forge python=3.12 numba scipy pyarrow -y
 conda activate heatguard
 pip install pythermalcomfort==4.8.0 thermofeel==2.3.0 pandas scikit-learn requests streamlit pytest
 ```
 
-Use `--design full` for the full study size (30 workers × 60 dates, about 7 minutes).
-`--test-weather` uses **synthetic** weather to check the code when Open-Meteo is unreachable.
-Its numbers must never be reported. Every output folder from it is labelled `_TEST_SYNTHETIC`.
+## The demo
 
-## Week 8 experiments (branch `week8-models`)
+`docs/demo/heatguard_demo.html` is one self-contained page. Open it in any browser.
 
-Run after `run_pilot.py`; it reuses the simulated shifts, so no new simulation is needed:
+- The HeatGuard alert engine runs **in the page** (`docs/demo/engine.js`, a JavaScript port of the
+  Python engine). Every simulated wearable message goes through the same inputs, model, sensor
+  check, fallback, 30-minute hold and Heat Index ceiling.
+- A site board shows 12 test workers on one day; a detail view shows one worker minute by minute
+  against the WBGT, Heat Index and TWL rules.
+- You can switch a heart-rate sensor off or freeze it at any time and watch the fallback.
 
 ```bash
-python run_week8.py --run outputs/full          # all models, scenarios and heart-rate links
-python -m pytest -q                             # Week 7 checks + AI-generated edge cases
-pip install matplotlib                          # once, for the figures
-python make_figures.py --run outputs/full       # paper-ready figures + tables.md
+python make_demo_data.py          # rebuild the page from outputs/v5 (asserts each shift matches the locked scores)
+node docs/demo/check_engine.js    # proves the browser engine and the Python engine agree, minute by minute
 ```
 
-It adds random forest and gradient boosting, a second fold (validation and test swap roles),
-all sensor scenarios, lead-time differences with 95% intervals, the weaker heart-rate link
-sensitivity test and E5 factor importance. Results go to `outputs/<run>/week8/`.
-The AI-generated vs manual test case comparison is in `docs/test_cases.md`.
+The Week 8 Streamlit dashboard (`streamlit run dashboard.py`) still works on Week 8 outputs. It
+is kept as the earlier iteration and is not the v0.5 demo.
 
-## The six parts
+## The parts
 
-| # | Part | File | Owner |
-|---|------|------|-------|
-| 1 | Weather loader | `heatguard/weather.py` | TBD |
-| 2 | Worker and shift generator | `heatguard/workers.py` | TBD |
-| 3 | Simulator ("the body") | `heatguard/simulator.py` | Rayen Chaouachi |
-| 4 | Wearable messages and faults | `heatguard/wearables.py`, `heatguard/features.py` | TBD |
-| 5 | Warning methods | `heatguard/baseline.py`, `heatguard/model.py`, `heatguard/alerts.py` | TBD |
-| 6 | Scorer and dashboard | `heatguard/evaluate.py`, `dashboard.py` | TBD |
-| – | Pipeline and integration | `run_pilot.py`, `heatguard/config.py` | Rayen Chaouachi |
+| # | Part | File |
+|---|------|------|
+| 1 | Weather loader (ERA5 through Open-Meteo), WBGT and Heat Index | `heatguard/weather.py` |
+| 2 | Worker and shift generator; person-to-person differences | `heatguard/workers.py`, `heatguard/v5.py` |
+| 3 | Simulator ("the body"): ISO 7933 minute by minute, hydration, self-pacing | `heatguard/simulator.py`, `heatguard/v5.py` |
+| 4 | Wearable messages, sensor faults, model inputs | `heatguard/wearables.py`, `heatguard/features.py` |
+| 5 | Warning methods: UAE rules (break, Heat Index, TWL, WBGT), model, fallback | `heatguard/baseline.py`, `heatguard/v5.py`, `heatguard/week8.py`, `heatguard/alerts.py` |
+| 6 | Scorer, hypotheses H1 to H6, verdict | `heatguard/evaluate.py`, `run_v5.py` |
+| 7 | Demo: browser engine and page | `docs/demo/`, `make_demo_data.py` |
 
-Each part has a header comment that states its input and output, so one part can be changed
-without touching the others. All study settings live in `heatguard/config.py`.
+All study settings are in `heatguard/config.py` and at the top of `heatguard/v5.py` and
+`run_v5.py`. Who worked on what: `CONTRIBUTIONS.md`.
 
-## Outputs (`outputs/<run>/`)
+## Earlier iterations (kept, with their results)
 
-| File | Contents |
-|------|----------|
-| `workers.csv`, `split.csv` | Virtual workers and the train/validation/test split |
-| `trajectories.csv.gz` | Minute-by-minute simulated body and weather (the hidden reference) |
-| `shift_index.csv` | One row per shift, with the danger-onset minute |
-| `threshold_table.csv` | Every candidate ML threshold scored on validation data |
-| `scores.csv`, `summary.json` | E1–E3 per test shift, scenario and method; run settings and library versions |
-| `policy_logs.csv.gz` | Per-minute warnings for the dashboard |
-| `sample_messages.jsonl` | Example MQTT-style wearable messages |
+| Version | Script | Outcome |
+|---|---|---|
+| v0.1 to v0.2 (Week 7) | `run_pilot.py` | First pipeline; empty test set found and fixed |
+| v0.3 (Week 8) | `run_week8.py`, `make_figures.py` | Declared verdict: not supported (26 events) |
+| v0.4 (Week 9, morning of 16 Nov) | `run_week9.py`, `make_confirmation_set.py`, `reference_check.py` | Exploratory only; superseded by v0.5 |
+| v0.5 (Week 9) | `run_v5.py`, `calibrate_pacing.py`, `posthoc_v5.py` | Gap closed (table above) |
 
-## What this prototype does not show
-
-It does not show that real workers would be safer: PHS is a model of the body, faults are
-injected into messages (there is no device or broker), and heart rate is generated from the same
-simulated body as the labels. See `docs/decisions.md` and Section III-G of the paper.
+Every one of these, including the failures, is in `docs/iteration_log.md`.
 
 ## Evidence
 
-- `docs/evidence_log.md`: start here; points to all the evidence below
-- `docs/architecture_versions.md`: architecture v1.0 to v1.2
+- `docs/evidence_log.md`: start here; it points to everything below
+- `docs/feedback_response.md`: each piece of feedback and what we changed
+- `docs/preregistration_v5.md` and `docs/posthoc_plan_v5.md`: plans committed before the runs
+- `docs/results/`: results of every reported run
+- `docs/architecture_versions.md`: architecture v1.0 to v1.3
 - `docs/iteration_log.md`: what failed, what changed, and why
 - `docs/decisions.md`: design decisions and rejected alternatives
+- `docs/test_cases.md`: automated tests, AI-generated and manual test cases
 - `docs/genai_log.md`: GenAI use and prompt records
 - `CONTRIBUTIONS.md`: who did what

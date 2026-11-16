@@ -46,6 +46,29 @@ Code: `tests/test_ai_cases.py`. "Proposed decision" is the AI's suggestion. The
   Fixed on branch `fix-hr-plausibility`: readings outside 30–220 bpm are treated as missing
   (`HR_VALID_RANGE` in `config.py`). Range 30–220 bpm confirmed by Rayen on 8 Nov 2026 (decision D12).
 
+- **F3 (found 17 Nov 2026 while building the live demo): a sensor fault can leave extra warnings after it ends.**
+  During a fault HeatGuard correctly switches to the WBGT rule. But the frozen or missing readings
+  still feed two inputs, the heart-rate trend and the "rise above today's low", so after the fault
+  the risk can stay raised. In the locked scores a 15-minute stuck sensor added more than 60 warning
+  minutes on 1,125 of 4,000 shifts (median +42, which is the expected cost of the fallback plus the
+  30-minute hold) and more than 240 minutes on 85 shifts. It never made HeatGuard miss an event.
+  Not fixed in v0.5, because the model was already locked (decision D27). Proposed fix: do not
+  update the trend and baseline inputs during a fault and for 15 minutes after it.
+
+## Part A2: Automated checks added for v0.5 (Week 9)
+
+Written with Claude Code on 16 and 17 Nov 2026. They are regression checks for the new parts, not
+edge cases proposed for the comparison in Part C.
+
+| File | Checks | What they protect |
+|------|--------|-------------------|
+| `tests/test_v5.py` | 10 | The legal break applies only inside its dates; TWL is close to three published field values and falls as heat rises; each comparator follows its rule and is silent in the break; the Heat Index 54 ceiling; person-to-person differences scale as intended; sweat and body-mass loss add up over a day |
+| `tests/test_posthoc.py` | 6 | The formula used for Dubai's chart reproduces five cells read from the guideline; the extra checks can never write into the locked results folder |
+| `tests/test_demo_engine.py` | 2 | The browser engine gives the same risk, warning and fallback state as the Python engine on every minute of every demo shift, in three sensor scenarios (36,720 minutes); the demo page contains exactly the engine that was checked |
+
+Whole suite on 17 Nov 2026: `python -m pytest -q` gives 46 passed, 5 skipped (the empty manual
+template below), 1 expected failure (F1, kept visible on purpose).
+
 ## Part B: Manual cases (to be written by group members)
 
 Write these **without looking at Part A**. Add your name. Aim for 8–12 cases across
