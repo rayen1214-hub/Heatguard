@@ -1,0 +1,223 @@
+{
+  "verdict": "PARTLY CLOSED",
+  "judge": {
+    "events": 890,
+    "shifts": 4000,
+    "sensitivity": {
+      "hg": 0.9741573033707865,
+      "c1_ban": 0.0,
+      "c2_heat_index": 0.9359550561797753,
+      "c3_twl": 0.17865168539325843,
+      "c4_wbgt": 0.9876404494382023
+    },
+    "H1": {
+      "diff": 0.9741573033707865,
+      "ci95": [
+        0.9470964606702432,
+        0.9909297786472101
+      ],
+      "pass": true
+    },
+    "c2_heat_index": {
+      "H2": {
+        "diff": 0.038202247191011285,
+        "ci95": [
+          0.008291677706143908,
+          0.07554183543921163
+        ],
+        "pass": true
+      },
+      "H3": {
+        "reduction": 0.6481669541388205,
+        "ci95": [
+          0.5868496761870082,
+          0.7103103377190931
+        ],
+        "false_ep_diff": -0.4664999999999999,
+        "pass": true
+      },
+      "H4": {
+        "median_diff": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "pass": true
+      },
+      "H6": {
+        "a": 41,
+        "b": 7,
+        "p": 3.120204219442258e-07,
+        "pass": true
+      },
+      "clearly_safer": true,
+      "precision_or_safety": true
+    },
+    "c3_twl": {
+      "H2": {
+        "diff": 0.7955056179775282,
+        "ci95": [
+          0.7273941383005725,
+          0.8429442931928872
+        ],
+        "pass": true
+      },
+      "H3": {
+        "reduction": -8.367670315834728,
+        "ci95": [
+          -10.710919871755356,
+          -6.26287394899532
+        ],
+        "false_ep_diff": 0.77275,
+        "pass": false
+      },
+      "H4": {
+        "median_diff": 30.0,
+        "ci95": [
+          30.0,
+          30.0
+        ],
+        "pass": true
+      },
+      "H6": {
+        "a": 714,
+        "b": 6,
+        "p": 3.4645695019187896e-203,
+        "pass": true
+      },
+      "clearly_safer": true,
+      "precision_or_safety": true
+    },
+    "c4_wbgt": {
+      "H2": {
+        "diff": -0.013483146067415741,
+        "ci95": [
+          -0.031489914038923275,
+          -0.0024597984950437426
+        ],
+        "pass": false
+      },
+      "H3": {
+        "reduction": 0.6814209059844769,
+        "ci95": [
+          0.6331833926628292,
+          0.7327025606030284
+        ],
+        "false_ep_diff": -0.5545,
+        "pass": true
+      },
+      "H4": {
+        "median_diff": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "pass": true
+      },
+      "H6": {
+        "a": 3,
+        "b": 15,
+        "p": 0.9993438720703125,
+        "pass": false
+      },
+      "clearly_safer": false,
+      "precision_or_safety": true
+    },
+    "H5": {
+      "S5_dropout": {
+        "c2_heat_index": {
+          "ci95": [
+            0.008291677706143908,
+            0.07554183543921163
+          ],
+          "pass": true
+        },
+        "c3_twl": {
+          "ci95": [
+            0.7273941383005725,
+            0.8429442931928872
+          ],
+          "pass": true
+        },
+        "c4_wbgt": {
+          "ci95": [
+            -0.031489914038923275,
+            -0.0024597984950437426
+          ],
+          "pass": false
+        }
+      },
+      "S6_stuck": {
+        "c2_heat_index": {
+          "ci95": [
+            0.008291677706143908,
+            0.07554183543921163
+          ],
+          "pass": true
+        },
+        "c3_twl": {
+          "ci95": [
+            0.7273941383005725,
+            0.8429442931928872
+          ],
+          "pass": true
+        },
+        "c4_wbgt": {
+          "ci95": [
+            -0.031489914038923275,
+            -0.0024597984950437426
+          ],
+          "pass": false
+        }
+      }
+    },
+    "verdict": "PARTLY CLOSED"
+  },
+  "summary": {
+    "c1_ban": {
+      "shifts": 4000,
+      "events": 890,
+      "missed": 890,
+      "miss_rate": 1.0,
+      "median_lead": 0.0,
+      "false_per_shift": 0.0,
+      "warning_min_per_shift": 0.0
+    },
+    "c2_heat_index": {
+      "shifts": 4000,
+      "events": 890,
+      "missed": 57,
+      "miss_rate": 0.06404494382022471,
+      "median_lead": 30.0,
+      "false_per_shift": 1.46,
+      "warning_min_per_shift": 433.52025
+    },
+    "c3_twl": {
+      "shifts": 4000,
+      "events": 890,
+      "missed": 731,
+      "miss_rate": 0.8213483146067416,
+      "median_lead": 0.0,
+      "false_per_shift": 0.22075,
+      "warning_min_per_shift": 16.28225
+    },
+    "c4_wbgt": {
+      "shifts": 4000,
+      "events": 890,
+      "missed": 11,
+      "miss_rate": 0.012359550561797753,
+      "median_lead": 30.0,
+      "false_per_shift": 1.548,
+      "warning_min_per_shift": 478.772
+    },
+    "hg": {
+      "shifts": 4000,
+      "events": 890,
+      "missed": 23,
+      "miss_rate": 0.025842696629213482,
+      "median_lead": 30.0,
+      "false_per_shift": 0.9935,
+      "warning_min_per_shift": 152.52675
+    }
+  }
+}

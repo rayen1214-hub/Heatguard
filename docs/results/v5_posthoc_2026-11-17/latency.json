@@ -1,0 +1,8 @@
+{
+  "messages": 3600,
+  "median_ms": 12.23,
+  "p95_ms": 14.28,
+  "max_ms": 39.77,
+  "budget_ms": 60000,
+  "machine": "cloud build machine, 1 thread"
+}

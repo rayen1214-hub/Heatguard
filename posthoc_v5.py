@@ -90,6 +90,8 @@ def _summ(df):
 def stage_analyse():
     out = _safe(PH / "analyse")
     res = {}
+    prev = out / "analyse.json"
+    p4b_done = json.loads(prev.read_text()).get("P4b_variants", {}) if prev.exists() else {}
     model, thr, hold, tr = locked_model()
     wk_t, ix_t, groups_t, twl_t = R.load_set("test", R.OUT)
     te = R.rows(wk_t, ix_t, groups_t)
@@ -225,8 +227,11 @@ def stage_analyse():
     max_miss = json.loads((R.OUT / "select.json").read_text())["max_miss"]
     R.HOLDS = (hold,)
     wids = np.array([s["worker_id"] for s in tr])
-    res["P4b_variants"] = {}
+    res["P4b_variants"] = dict(p4b_done)       # variants finished before an interrupted run are kept, not re-fitted
     for name, cols in variants.items():
+        if name in res["P4b_variants"]:
+            log(f"P4b {name}: kept from the interrupted run")
+            continue
         def fit(shifts, cols=cols):
             X = pd.concat([s["feats"].iloc[::R.TRAIN_EVERY] for s in shifts], ignore_index=True)
             y = pd.concat([s["y"].iloc[::R.TRAIN_EVERY] for s in shifts], ignore_index=True)

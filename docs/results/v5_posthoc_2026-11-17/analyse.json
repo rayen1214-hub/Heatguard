@@ -178,5 +178,79 @@
       "act_mean15",
       -1.49
     ]
-  ]
+  ],
+  "P4b_variants": {
+    "full (locked inputs, re-tuned as a check)": {
+      "inputs": 25,
+      "threshold": 0.32,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.035218783351120594,
+        "warning_min_per_shift": 161.71183333333335
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 8,
+        "miss_rate": 0.011111111111111112,
+        "median_lead": 30.0,
+        "false_per_shift": 1.081,
+        "warning_min_per_shift": 162.90475
+      }
+    },
+    "weather + personal only (no wearable)": {
+      "inputs": 11,
+      "threshold": 0.22,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.035218783351120594,
+        "warning_min_per_shift": 188.367
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 56,
+        "miss_rate": 0.07777777777777778,
+        "median_lead": 30.0,
+        "false_per_shift": 0.9205,
+        "warning_min_per_shift": 192.52075
+      }
+    },
+    "wearable + personal only (no weather)": {
+      "inputs": 19,
+      "threshold": 0.4,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.035218783351120594,
+        "warning_min_per_shift": 156.93
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 6,
+        "miss_rate": 0.008333333333333333,
+        "median_lead": 30.0,
+        "false_per_shift": 1.066,
+        "warning_min_per_shift": 157.34775
+      }
+    },
+    "full without pace and activity inputs": {
+      "inputs": 22,
+      "threshold": 0.28,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.032017075773746,
+        "warning_min_per_shift": 187.01633333333334
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 42,
+        "miss_rate": 0.058333333333333334,
+        "median_lead": 30.0,
+        "false_per_shift": 1.39075,
+        "warning_min_per_shift": 184.13625
+      }
+    }
+  }
 }
