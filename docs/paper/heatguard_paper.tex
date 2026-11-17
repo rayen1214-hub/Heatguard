@@ -1,0 +1,292 @@
+\documentclass[conference,a4paper]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\makeatletter
+\newcommand{\linebreakand}{\end{@IEEEauthorhalign}\hfill\mbox{}\par\mbox{}\hfill\begin{@IEEEauthorhalign}}
+\makeatother
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\newcommand{\pend}[1]{[#1]}
+\begin{document}
+
+\title{HeatGuard: An AI-Based Early Warning System for Heat Stress in Outdoor Workers Using Simulated IoT Wearables}
+
+\author{
+\IEEEauthorblockN{Zayed Zanober}
+\IEEEauthorblockA{ID 8417386}
+\and
+\IEEEauthorblockN{Faseeh Padinjarathil}
+\IEEEauthorblockA{ID 8418779}
+\and
+\IEEEauthorblockN{Jaanvi Chugani}
+\IEEEauthorblockA{ID 9959877}
+\and
+\IEEEauthorblockN{Rayen Chaouachi}
+\IEEEauthorblockA{ID 1268806}
+\and
+\IEEEauthorblockN{Fahmi Shafeeq}
+\IEEEauthorblockA{ID 8982569}
+\linebreakand
+\IEEEauthorblockA{Faculty of Engineering and Information Sciences, University of Wollongong in Dubai, Dubai, United Arab Emirates\\ CSIT305 Emerging Technology Research and Innovation Project \quad [e-mails to add]}
+}
+
+\maketitle
+
+\begin{abstract}
+Outdoor workers in the United Arab Emirates (UAE) are protected mainly by a calendar rule: a federal midday break from 12:30 to 15:00 between 15 June and 15 September. Index rules add environmental warnings, but they treat everyone on a site the same and warn for most of the day. HeatGuard is an AI early-warning artefact that reads simulated wearable signals and real weather and predicts, 30 minutes ahead, when an individual worker will reach a dangerous core temperature. We compared five pre-registered options: the legal break alone, the break plus each of three index rules, and the break plus HeatGuard. Simulated workers were built from the ISO 7933 Predicted Heat Strain model with person-to-person differences and self-pacing, calibrated to published field averages, on ERA5 Dubai weather. The model was trained on 200 workers in summer 2025 and tested once, under a locked plan, on 100 new workers in summer 2024 (4,000 shifts, 720 danger events). HeatGuard warned before 98.9\% of events, against 0\% for the break alone, 96.4\% for a Heat Index rule, 22.4\% for the Thermal Work Limit and 99.3\% for the Wet Bulb Globe Temperature (WBGT) rule, with 163 warning minutes per shift (67\% fewer than WBGT) and fewer false alarm episodes. Exploratory checks made afterwards are reported in full: the reduction in warnings held in all of them, but equal safety with WBGT did not hold when people differed more than assumed, nor in one of three smaller repeats. Under the pre-registered rule the research gap is closed for simulated workers; validation on measured workers is still needed.
+\end{abstract}
+
+\begin{IEEEkeywords}
+heat stress, early warning, wearable sensors, Internet of Things, machine learning, occupational safety, UAE
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+\subsection{Background}
+The UAE has one of the hottest climates in the world, and much of its workforce works outdoors. Heat exposure causes heat exhaustion and heat stroke and lowers productivity \cite{kjellstrom}. The main protection is a federal calendar rule: from 15 June to 15 September, work in direct sun stops from 12:30 to 15:00 \cite{mohre}. Emirate rules add environmental warnings. Dubai's guideline sets risk bands from a Heat Index chart, with high risk from 40 \cite{dm}; Abu Dhabi's code of practice uses the Thermal Work Limit (TWL), the highest work rate a worker can keep without overheating \cite{oshad}, \cite{brake}; and the international standard is the Wet Bulb Globe Temperature (WBGT) with work--rest limits \cite{iso7243}, \cite{niosh}. Companies have begun to trial wearables \cite{ega}. Research on wearables, the Internet of Things (IoT) and machine learning (ML) for heat stress is growing, but a review of 96 studies found few predictive models tested under real conditions \cite{asto}.
+
+\subsection{Problem Statement and Stakeholders}
+The calendar rule and the index rules share two weaknesses. They treat everyone on a site the same, while people differ in how fast they heat up, even at the same work rate and acclimatisation. And they are coarse: the calendar rule ignores hot mornings, late afternoons and hot days outside its dates, and index rules warn for whole hours without saying which worker is approaching danger, so they are easy to ignore. Those affected are outdoor workers, supervisors who must decide who needs a break, employers, and regulators (MoHRE, Dubai Municipality, Abu Dhabi OSHAD).
+
+\subsection{Research Question and Contributions}
+\textbf{RQ:} Under real Dubai summer weather and simulated workers, does adding a personalised AI early warning (HeatGuard) to the legal midday break catch dangerous core-temperature events at least as well as a Heat Index rule, the Abu Dhabi TWL rule and the WBGT rule, while giving far fewer warnings? We answer it with six pre-registered hypotheses (Section~\ref{sec:hyp}). We contribute (1) a working artefact: a minute-by-minute alert engine with a sensor-fault fallback, a warning hold and a heat ceiling, running live in a browser with a supervisor site board and a worker view; (2) an open, pre-registered comparison against the rules UAE sites use, on the same simulated workers, with one locked test on a new year and new workers; (3) simulated workers built on the ISO 7933 body model and compared with published field averages; and (4) open code, data, tests and a record of failed iterations (GitHub: [link to add]).
+
+\section{Related Work and Research Gap}
+
+\subsection{Rule-Based Heat Stress Assessment}
+WBGT with work--rest limits is the international reference \cite{iso7243}, \cite{niosh}. The TWL was developed as a rational index from heat balance \cite{brake}, \cite{millerbates} and used with UAE construction workers \cite{bates}. Dubai's guideline uses Heat Index bands \cite{dm}. All of these describe the environment rather than the person. Tustin et al.\ found that WBGT and Heat Index limits were exceeded in nearly all US outdoor heat-illness cases they examined, so limits only help if acted on \cite{tustin}, and one field study found that WBGT risk levels overestimated measured strain \cite{sousan}: rules that warn too often lose trust.
+
+\subsection{Wearables and Machine Learning}
+Hirata et al.\ estimated core temperature rise from heart rate and weather with a compartment model \cite{hirata}, and the Kenzen device trialled in the UAE estimates core temperature from wearable signals \cite{moyen}. On the prediction side, Shimazaki et al.\ used supervised ML on personalised vital signs instead of fixed thresholds \cite{shimazaki}, Ojha et al.\ reported 93.2\% accuracy with ensemble learning in controlled tasks \cite{ojha}, and Choi et al.\ forecast personal allowable exposure time \cite{choi}.
+
+\subsection{Research Gap}
+Wearable monitoring and ML prediction exist, but studies report accuracy rather than outcomes a site can act on. The closest studies compare with no rule in use \cite{hirata}, \cite{ojha}, \cite{choi}, with a fixed threshold \cite{shimazaki} or with WBGT alone \cite{sousan}, and none reports both lead time and alarm burden. HeatGuard addresses this gap: a pre-registered, paired comparison against the federal break, a Heat Index rule, the Abu Dhabi TWL and WBGT, measured by missed events, lead time, false episodes and warning minutes. The review is scoped, so we do not claim HeatGuard is the first AI heat-warning system.
+
+\section{Method}
+
+\subsection{Research Design}
+We ran a paired simulation experiment. Every option sees the same weather, workers and schedule, and a separate body model provides the reference outcome. Warnings do not change the simulated day, so all options are scored against the same counterfactual. The frame, hypotheses, margin and verdict rule were signed off, and the plan committed to the repository, before the test set was scored in a single locked run.
+
+\subsection{Weather}
+Hourly ERA5 reanalysis \cite{era5}, retrieved through the Open-Meteo archive \cite{openmeteo}, for the Dubai grid cell (25.0\textdegree N, 55.25\textdegree E), 1 June to 30 September, for 2025 (training) and 2024 (locked test). Hourly values were interpolated to minutes. WBGT was computed with the Liljegren method \cite{liljegren} in thermofeel \cite{thermofeel} and the Heat Index with the NWS Rothfusz formula \cite{rothfusz}. Mean radiant temperature was assumed to be air temperature $+10$\,\textdegree C in exposed work and $+1$\,\textdegree C in shade.
+
+\subsection{Simulated Workers}\label{sec:workers}
+The day runs 06:00--18:00 with 45 minutes of work and 15 minutes of shaded rest each hour. From 15 June to 15 September the legal break 12:30--15:00 is in the schedule, with no exposure and no warnings. Workers vary in mass (55--95\,kg), height (1.60--1.90\,m), acclimatisation (balanced) and work rate (100, 165 or 230\,W/m$^2$). Body temperature comes from ISO 7933 Predicted Heat Strain (PHS) \cite{iso7933} in pythermalcomfort \cite{pythermal}, chained minute by minute.
+
+PHS describes a standard person, so we added documented differences between people: a resting core offset (SD 0.2\,\textdegree C), the share of sweat replaced by drinking (assumed 50--90\%; UAE workers stay mildly dehydrated \cite{bates}), and 0.10--0.20\,\textdegree C extra core temperature per 1\% of body mass lost \cite{sawka}. Real workers also slow down when hot \cite{selfpacing}: each worker eases to 65\% of their work rate once their core passes their own pace point (mean 37.7\,\textdegree C) and returns 0.15\,\textdegree C lower. These two values were tuned on separate calibration workers so that the share of worker-days passing 38.0, 38.3 and 38.5\,\textdegree C matched 55 Guatemalan field workers \cite{krisher}: 45/18/6\% in our training set against 44/16/6\% in the field.
+
+Raw data of real workers are not public, so published averages are our reference. Against two other studies the simulated workers run hot: they spend 14\% of work time at 38.0--38.4\,\textdegree C against about 3\% in 125 workers in Qatar \cite{qatar}, and their mean working heart rate is 105\,bpm (91 in the lightest work group) against 87--91\,bpm in UAE construction workers studied in May \cite{bates}, at a WBGT of 26--29\,\textdegree C against 33\,\textdegree C in our summer data.
+
+A \emph{danger event} is the first minute during work at which the adjusted rectal temperature reaches 38.2\,\textdegree C (38.5\,\textdegree C if acclimatised); it is a study definition, not a diagnosis. Heart rate, skin temperature and activity are emitted each minute with noise; heart-rate readings outside 30--220\,bpm count as missing.
+
+\subsection{Data Sets}
+Training: 200 workers $\times$ 30 random dates of 2025 = 6,000 shifts, 937 events. Locked test: 100 different workers $\times$ 40 random dates of 2024 = 4,000 shifts, simulated before the run and never scored before it.
+
+\subsection{Compared Options}
+All options keep the legal break (Table~\ref{tab:options}). Comparators use each worker's own work rate and acclimatisation and are computed every minute, a best case for them. TWL is our own implementation of the published definition \cite{brake}: the highest work rate at which a standard acclimatised worker keeps core temperature $\le$38.2\,\textdegree C and sweat $\le$1.2\,kg/h. Against three published field values \cite{millerbates} it is $-1\%$, $+5\%$ and $+23\%$ off.
+
+\begin{table}[!t]
+\caption{Compared Options (All Keep the Legal Break)}
+\label{tab:options}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.6cm}p{1.9cm}p{4.9cm}@{}}
+\toprule
+Code & Option & Warns during work when \\
+\midrule
+C1 & Break only \cite{mohre} & Never \\
+C2 & + Heat Index & NWS Heat Index \cite{rothfusz} $\ge$ 40\,\textdegree C, the high-risk band of \cite{dm} \\
+C3 & + TWL \cite{oshad}, \cite{bates} & TWL $<$ 115\,W/m$^2$ ($<$ 140 if unacclimatised), dry bulb $>$ 44\,\textdegree C or wet bulb $>$ 32\,\textdegree C \\
+C4 & + WBGT \cite{niosh} & WBGT above the worker's NIOSH RAL/REL (60-min averages) \\
+HG & + HeatGuard & Model risk $\ge$ threshold; WBGT fallback if the HR sensor fails; everyone warned at Heat Index $\ge$ 54\,\textdegree C \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Model and Threshold}
+HeatGuard uses logistic regression \cite{sklearn} to predict whether an event starts within 30 minutes. Its 25 inputs are trailing 5- and 15-minute summaries and trends of heart rate, skin temperature and activity; current and 60-minute WBGT and Heat Index; body size, acclimatisation and planned work rate; reading-quality flags; time of day; the pace gap (how much slower than planned the worker moves); and heart-rate and skin-temperature rise above the day's low. All use past or current readings only; core temperature is never an input. Random forest and gradient boosting never met the tuning limit and were dropped.
+
+The threshold and a warning hold (0, 15 or 30 minutes) were chosen out-of-fold across five groups of training workers: among settings whose miss rate is at most the safest index rule's training miss rate plus 1 point, with median lead $\ge$25 minutes, take the fewest false episodes, then the fewest warning minutes. The choice was threshold 0.32 with a 30-minute hold (training: 3.5\% missed, 162 warning minutes per shift). The model was refitted on all training workers and scored once on the test set; no test worker or test year was used for any choice, to avoid leakage \cite{kapoor}.
+
+\subsection{Measures, Hypotheses and Verdict}\label{sec:hyp}
+An episode is a run of warning minutes; a new episode needs five clear minutes. An event is caught if a warning is active in the 30 minutes before onset; lead time is measured from the first such minute. A false episode has no overlap with a pre-event window. Warning minutes per shift measure alarm burden. 95\% intervals come from 2,000 resamples of workers, so many shifts of one person do not count as independent evidence. Table~\ref{tab:hyp} lists the hypotheses.
+
+\begin{table}[!t]
+\caption{Pre-Registered Hypotheses}
+\label{tab:hyp}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{0.45cm}p{2.3cm}p{4.65cm}@{}}
+\toprule
+ & Claim & Passes if \\
+\midrule
+H1 & More catches than break alone & HG $-$ C1 sensitivity: interval above 0 \\
+H2 & As safe as each index rule & HG $-$ rule sensitivity: lower bound $\ge -2$ points (margin $M=2$) \\
+H3 & Far fewer warnings & Warning minutes $\ge$50\% lower (lower bound) and false episodes not higher \\
+H4 & Warns as early & Median lead difference: lower bound $\ge -5$ min \\
+H5 & Robust to faults & H2 holds with a 10-min HR dropout and a 15-min stuck sensor \\
+H6 & Catches what rules miss & $a$ (rule missed, HG caught) $>$ $b$ (reverse), exact one-sided McNemar $p<0.05$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Per rule, HeatGuard wins on \emph{precision-or-safety} if H3 passes or it is clearly safer (sensitivity lower bound above 0). The gap is \emph{closed} if H1 passes, H2 passes against C2--C4, and HeatGuard wins on precision-or-safety against each of them.
+
+\section{The HeatGuard Artefact}
+
+\subsection{Architecture}
+The study pipeline has six Python parts (Fig.~\ref{fig:arch}): a weather loader; a worker and shift generator; the PHS body simulator with person-to-person differences and self-pacing; simulated wearables that emit one MQTT-style JSON message per minute (topic \texttt{heatguard/worker/<id>/vitals}); the alert engine; and a scorer. The simulator's core temperature goes only to the scorer, never to the alert engine, so the model cannot see the answer.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig1.pdf}
+\caption{HeatGuard architecture. The observation path (weather and wearables to the alert engine, the worker's wearable and the site board) is separate from the reference path (core temperature to the scorer only).}
+\label{fig:arch}
+\end{figure}
+
+\subsection{Alert Engine}
+Each minute the engine builds its inputs from past and current readings, scores the model and applies four rules in order. (1) \emph{Sensor check}: after two missing heart-rate readings in a row, or five identical ones, the reading is not trusted and the engine falls back to the WBGT rule; if the WBGT rule is unavailable too, it warns. It returns to the model when valid readings resume. (2) \emph{Model warning}: warn when the predicted 30-minute risk is at least 0.32. (3) \emph{Hold}: once on, the warning stays on for 30 minutes after the last trigger, so the wearable does not flicker. (4) \emph{Ceiling and break}: everyone is warned when the Heat Index reaches 54\,\textdegree C (NWS extreme danger, 3\% of 2024 work hours); no warnings are sent during the legal break, when nobody works.
+
+\subsection{Interface}
+The warning goes to two people. The worker's wearable shows OK, STOP or REST. The supervisor's site board shows every worker's state, risk and sensor status, and opens any worker minute by minute against the three index rules. For the demonstration the alert engine itself was ported to JavaScript and runs inside one web page, with no installation. The viewer can switch a heart-rate sensor off or freeze it at any minute and watch the fallback, and the page lists the inputs that push the current risk up or down.
+
+\subsection{Testing and Performance}
+\emph{Automated tests.} 46 checks cover the scoring rules, the comparators, the TWL against published values, the ceiling, the break and the simulator. An agreement check replays 17 test shifts under three sensor scenarios (36,720 minutes) through the Python and the browser engine; warning and fallback states were identical on every minute. \emph{AI-generated and manual cases.} A GenAI tool proposed 17 edge cases, of which 15 were implemented; they exposed two defects, both fixed: a crash when a shift starts without a heart-rate reading, and no plausibility check on heart rate. \pend{Manual cases and the AI-versus-manual comparison: group to add.} \emph{Usability.} A group member reviewed the first dashboard against Nielsen's ten heuristics \cite{nielsen}. Its two major findings (the model's risk stayed on screen during a sensor fault, and a frozen reading looked normal) and the missing multi-worker overview are addressed in the current interface. \emph{Latency.} A decision took a median 12\,ms per message (95th percentile 14\,ms) with the v0.5 inputs, against a budget of 60\,s. Code and data: [GitHub link]; project files: [SharePoint link].
+
+\section{Results}
+The locked test was run once on 16 November 2026. It contained 720 danger events: 593 on days when the legal break applied (207 of them in the 15:00 hour, right after the break) and 127 on days outside the break dates. Table~\ref{tab:results} gives the main results with clean sensors and Table~\ref{tab:tests} the hypothesis tests.
+
+\begin{table}[!t]
+\caption{Locked Test Results (4,000 Shifts, 720 Events, Clean Sensors)}
+\label{tab:results}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Option & Missed & Sens. & Lead & False/shift & Warn min \\
+\midrule
+C1 Break only & 720 & 0\% & -- & 0.00 & 0 \\
+C2 + NWS Heat Index & 26 & 96.4\% & 30 & 1.53 & 446 \\
+C3 + TWL & 559 & 22.4\% & -- & 0.23 & 17 \\
+C4 + WBGT & 5 & 99.3\% & 30 & 1.61 & 493 \\
+\textbf{HG + HeatGuard} & \textbf{8} & \textbf{98.9\%} & \textbf{30} & \textbf{1.08} & \textbf{163} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!t]
+\caption{Hypothesis Tests (95\% Intervals From Resampling Workers)}
+\label{tab:tests}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{1.2cm}p{2.15cm}p{1.75cm}p{2.15cm}@{}}
+\toprule
+ & vs Heat Index & vs TWL & vs WBGT \\
+\midrule
+H2 sens. diff. & $+2.5$ pts [$+0.1$, $+5.4$] pass & $+76.5$ pts pass & $-0.4$ pts [$-1.0$, 0.0] pass \\
+H3 warn min & $-63\%$ [57, 70] pass & n/a; clearly safer & $-67\%$ [62, 72] pass \\
+H4 lead diff. & 0 min pass & $+30$ min pass & 0 min pass \\
+H6 $a$ vs $b$ & 21 vs 3, $p=0.0001$ pass & 554 vs 3 pass & 0 vs 3, not passed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{H1.} HeatGuard warned before 98.9\% of events (interval 98.0--99.6\%), against 0\% for the break alone.
+
+\textbf{H2 and H3.} HeatGuard was within the 2-point margin of every rule. Against the NWS Heat Index rule it was clearly safer; against WBGT it missed 3 more events of 720 (0.4 points). Five events began in the first minute after the legal break, when no option can warn; these are all 5 WBGT misses and 5 of HeatGuard's 8. HeatGuard's other 3 misses came in the first 40 minutes of the day, before it had enough readings. Against both, it cut warning minutes by about two thirds and false episodes by about a third. TWL warned for only 17 minutes per shift but missed 559 events, so HeatGuard instead was clearly safer (Fig.~\ref{fig:tradeoff}).
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig2.pdf}
+\caption{Warning minutes per shift against missed events (log scale), locked test set. *Scored after the locked run (exploratory).}
+\label{fig:tradeoff}
+\end{figure}
+
+\textbf{H4.} Median lead was 30 minutes for HeatGuard, WBGT and Heat Index alike.
+
+\textbf{H5.} With a 10-minute heart-rate dropout or a 15-minute stuck sensor, HeatGuard still missed 8 events and H2 held. Its warning minutes rose to 207 and 216 per shift and its false episodes to 1.63 and 1.61, level with WBGT. Only 13 events began near the fault window, so this is a weak test.
+
+\textbf{H6.} HeatGuard caught 21 events the NWS Heat Index rule missed (3 the other way, $p=0.0001$) and 554 the TWL rule missed (3 the other way). It added no catches over WBGT (0 vs 3).
+
+\textbf{Verdict.} H1 passed; H2 passed against all three index rules; HeatGuard won on precision-or-safety against each (H3 against Heat Index and WBGT, clearly safer against TWL). Under the pre-registered rule, the research gap is closed.
+
+\subsection{Exploratory Checks After the Locked Run}
+These checks were planned and committed after the test set had been seen and before any of them was run. All are reported; none can change the verdict above.
+
+\textbf{Dubai's own chart.} C2 used the NWS formula. Dubai's guideline instead gives a lookup chart whose values match the Humidex \cite{humidex} at the five cells we checked (45 at 35\,\textdegree C and 50\% humidity, where the NWS formula gives 41). A rule that warns when the chart value is 40 or more was on for 93\% of working minutes (534 per shift) and missed 8 events, the same number as HeatGuard (3 vs 3 discordant events). HeatGuard gave 69\% fewer warning minutes [64, 75]. So HeatGuard is as safe as Dubai's chart rule, not safer, and the verdict is unchanged with this rule in place of C2.
+
+\textbf{Alarm burden in plain terms.} HeatGuard was in warning for 28\% of working minutes (WBGT 86\%), and 34\% of shifts had no warning at all (WBGT 0.2\%). Only 14\% of its warning episodes were followed by an event within 30 minutes (WBGT 10\%): the warnings are far fewer, but most are still precautionary.
+
+\textbf{Which inputs matter.} By standardised weight the model relies on physiological inputs (46\%), workload (25\%), weather (17\%) and personal data (11\%); the strongest are heart-rate rise above the day's low, the pace gap and 5-minute heart rate. Variants re-tuned on training workers with the same rule and scored on the test set: without the wearable (weather and personal inputs only) it missed 56 events at 193 warning minutes; without weather inputs 6 at 157; without the pace and activity inputs 42 at 184. The wearable carries the safety, the weather inputs add nothing measurable here, and much of the wearable's value is the self-pacing signal, which only a field trial can confirm.
+
+\textbf{Stress test and other seeds.} With person-to-person differences halved, the same 100 workers had 616 events and HeatGuard missed 3 (WBGT 1) at 173 warning minutes (WBGT 503): gap closed. With differences increased by half there were 890 events and HeatGuard missed 23 (WBGT 11) at 153 minutes (479). The sensitivity difference of $-1.3$ points [$-3.1$, $-0.2$] crosses the 2-point margin, so the verdict falls to ``partly closed'': the ``as safe as WBGT'' result depends on how much people differ. The whole pipeline repeated with three other seeds at smaller size (1,000 test shifts each; 183, 177 and 133 events) gave 5, 3 and 0 misses for HeatGuard against 1, 2 and 0 for WBGT, with 66--76\% fewer warning minutes: gap closed twice and partly closed once, where the interval [$-6.0$, 0] crossed the margin.
+
+\textbf{After a sensor fault.} The scripted faults never changed which events were caught, but they left extra warnings: a 15-minute stuck sensor added a median 42 warning minutes and more than 240 on 85 of 4,000 shifts. In a diagnostic outside the plan (500 shifts), half of the added minutes came from the fallback and hold and half later in the day, on the 42\% of shifts where the fault had lowered the stored day's-low heart rate. We report this defect and did not fix it, because the model was locked.
+
+\section{Discussion}
+\textbf{Meaning for a site.} The federal break is not sufficient: every event in our test happened outside it, more than a quarter in the hour after work resumed at 15:00 and 18\% on days outside its dates. WBGT is the safest rule and one of the noisiest, with a warning on for 86\% of working time. The TWL rule is quiet but, as implemented here, misses most events, because it is set for a standard acclimatised worker while danger concentrates in people who heat up faster. In the locked test HeatGuard kept WBGT-level safety with a third of its warnings because it warns the workers who are heating up rather than the whole site.
+
+\textbf{Failures and iteration.} Our first test (mornings only, WBGT alone) found the model not better: 7 missed events of 26 against 0, with thresholds tuned on as few as 4 events. In the new design the first data set failed its realism check and was discarded unscored; the first tuning target (99\% of training events) was impossible for every model and for the rules themselves; and without a hold the warning flickered. Each change used training data only and is in the pre-registration and the iteration log. After the locked run, a review of our own draft found that C2 was not Dubai's actual rule; the chart check above is the correction.
+
+\textbf{Security, privacy and ethics.} Heart rate and estimated heat strain are health data. A deployment needs informed consent, encrypted device communication and access limited to the worker and the safety officer. The engine needs only the last 60 minutes of readings, so raw data need not be stored, and its outputs must not be used to measure productivity or to discipline workers. No real worker data were collected here.
+
+\textbf{Organisational and sustainability implications.} A STOP for one worker only helps if the site can act on it: supervisors need spare capacity, a shaded rest area and a procedure for sensor faults. HeatGuard should complement the break and the index rules, not replace them; the WBGT fallback and the Heat Index ceiling keep a rule-based floor. The model is a 25-input logistic regression that runs in a browser, so it adds almost no computing or energy cost.
+
+\section{Limitations}
+(1) \emph{Simulated workers}: body temperature comes from ISO 7933, not from people. Differences and self-pacing follow published values and were calibrated to one field study \cite{krisher}; against two others the simulation runs hotter and harder (Section~\ref{sec:workers}), so events are probably more frequent than on a real UAE site. Events are concentrated (10 of 100 test workers account for 55\%), and afternoon events depend on our assumption that fluid lost in the morning is not recovered during the break. (2) \emph{Circularity}: simulated heart rate, skin temperature and pace come from the same body model as the outcome, and they are the model's strongest inputs, which makes prediction easier than in reality. (3) \emph{Comparators} are computed every minute with each worker's exact work rate, a best case, and \emph{TWL} is our own implementation. (4) \emph{Heat Index}: the locked C2 used the NWS formula, not Dubai's chart; the chart rule was only scored afterwards, as an exploratory check. (5) \emph{Weather}: ERA5 is gridded reanalysis interpolated to minutes, and radiant temperature is an assumed offset. (6) \emph{Sensor faults}: the scripted faults were near only 13 events, and stale readings raised warnings after a fault. (7) \emph{Lead time} is capped at 30 minutes and most catches sit at the cap, so H4 is a weak test. (8) \emph{No user study}: usability rests on alarm burden and one heuristic review. (9) \emph{Robustness}: equal safety with WBGT failed the margin in two exploratory checks, and the tuned threshold varied between seeds.
+
+\section{Conclusion}
+In our simulation the calendar break left all 720 danger events outside it. Adding HeatGuard, a personalised AI warning from wearable signals and real weather, caught 98.9\% of these events with a median lead of 30 minutes: within the agreed 2-point margin of the WBGT rule, level with Dubai's Heat Index chart, and far safer than our implementation of the Abu Dhabi TWL rule, with about two thirds fewer warning minutes and fewer false alarms. The result comes from one pre-registered, locked test on new workers and a new year, and it closes the research gap under the agreed rule for simulated workers. The saving in warnings held in every later check; equal safety with WBGT did not hold when people differed more than assumed. Next steps are a fix for the warnings left after a sensor fault, a harder fault test, and validation on measured workers before any real use.
+
+\section*{Declaration of Generative AI Use}
+Claude (Anthropic, Claude Code) wrote the simulation, analysis and demonstration code, ran the locked test and the exploratory checks, and drafted this paper, working from decisions the group signed off before each run. ChatGPT (OpenAI) helped word the usability review. The group set the question, the comparators, the margin and the verdict rule, ran the Week 8 study and carried out the usability review; each member reviewed and rewrote an assigned section and checked its numbers against the results files. \pend{Group to confirm this statement before submission.} Prompts and checks are recorded in the repository (\texttt{docs/genai\_log.md}).
+
+\begin{thebibliography}{00}
+\bibitem{kjellstrom} T. Kjellstrom, D. Briggs, C. Freyberg, B. Lemke, M. Otto, and O. Hyatt, ``Heat, human performance, and occupational health: A key issue for the assessment of global climate change impacts,'' \emph{Annu. Rev. Public Health}, vol. 37, pp. 97--112, 2016, doi: 10.1146/annurev-publhealth-032315-021740.
+\bibitem{mohre} Ministry of Human Resources and Emiratisation, ``Occupational heat stress prevention policy to be implemented from 15 June to 15 September for 22nd consecutive year,'' Jun. 8, 2026. [Online]. Available: \url{https://mohre.gov.ae}
+\bibitem{dm} Dubai Municipality, ``Technical guidelines for management of heat stress at work,'' DM-HSD-GU38-MHSW2, ver. 2.0, Oct. 2019. [Online]. Available: \url{https://www.dm.gov.ae}
+\bibitem{oshad} Abu Dhabi Occupational Safety and Health Center (OSHAD), ``OSHAD-SF Code of Practice 11.0: Safety in the heat.'' [Online]. Available: \url{https://www.adphc.gov.ae}
+\bibitem{brake} D. J. Brake and G. P. Bates, ``Limiting metabolic rate (thermal work limit) as an index of thermal stress,'' \emph{Appl. Occup. Environ. Hyg.}, vol. 17, no. 3, pp. 176--186, 2002, doi: 10.1080/104732202753438261.
+\bibitem{iso7243} \emph{Ergonomics of the Thermal Environment---Assessment of Heat Stress Using the WBGT (Wet Bulb Globe Temperature) Index}, ISO 7243:2017, 2017.
+\bibitem{niosh} B. L. Jacklitsch \emph{et al.}, ``Criteria for a recommended standard: Occupational exposure to heat and hot environments,'' NIOSH, DHHS Publ. No. 2016-106, 2016, doi: 10.26616/NIOSHPUB2016106.
+\bibitem{ega} Emirates Global Aluminium, ``EGA extends use of wearable technology to `Beat the Heat' in the UAE summer,'' Aug. 9, 2023. [Online]. Available: \url{https://media.ega.ae}
+\bibitem{asto} R. F. Asto Bonifacio, B. Y. Buendia Milla, and J. J. Huaman Rojas, ``Predicting occupational heat stress in critical sectors: A sector-based systematic review of wearable sensing, IoT platforms, and machine-learning models,'' \emph{J. Robot. Control}, vol. 6, no. 5, pp. 2152--2165, 2025, doi: 10.18196/jrc.v6i5.27377.
+\bibitem{millerbates} V. S. Miller and G. P. Bates, ``The thermal work limit is a simple reliable heat index for the protection of workers in thermally stressful environments,'' \emph{Ann. Occup. Hyg.}, vol. 51, no. 6, pp. 553--561, 2007, doi: 10.1093/annhyg/mem035.
+\bibitem{bates} G. P. Bates and J. Schneider, ``Hydration status and physiological workload of UAE construction workers: A prospective longitudinal observational study,'' \emph{J. Occup. Med. Toxicol.}, vol. 3, Art. no. 21, 2008, doi: 10.1186/1745-6673-3-21.
+\bibitem{tustin} A. W. Tustin \emph{et al.}, ``Evaluation of occupational exposure limits for heat stress in outdoor workers---United States, 2011--2016,'' \emph{MMWR}, vol. 67, no. 26, pp. 733--737, 2018, doi: 10.15585/mmwr.mm6726a1.
+\bibitem{sousan} S. Sousan \emph{et al.}, ``Assessing the feasibility of wearable devices for physiological monitoring and heat risk prediction in outdoor agricultural workers,'' \emph{Am. J. Ind. Med.}, vol. 69, no. 9, pp. 722--744, 2026, doi: 10.1002/ajim.70103.
+\bibitem{hirata} A. Hirata \emph{et al.}, ``Body core temperature estimation using new compartment model with vital data from wearable devices,'' \emph{IEEE Access}, vol. 9, pp. 124452--124462, 2021, doi: 10.1109/ACCESS.2021.3110252.
+\bibitem{moyen} N. E. Moyen, R. C. Bapat, B. Tan, L. A. Hunt, O. Jay, and T. M{\"u}ndel, ``Accuracy of algorithm to non-invasively predict core body temperature using the Kenzen wearable device,'' \emph{Int. J. Environ. Res. Public Health}, vol. 18, no. 24, Art. no. 13126, 2021, doi: 10.3390/ijerph182413126.
+\bibitem{shimazaki} T. Shimazaki, D. Anzai, K. Watanabe, A. Nakajima, M. Fukuda, and S. Ata, ``Heat stroke prevention in hot specific occupational environment enhanced by supervised machine learning with personalized vital signs,'' \emph{Sensors}, vol. 22, no. 1, Art. no. 395, 2022, doi: 10.3390/s22010395.
+\bibitem{ojha} A. Ojha, S. Shayesteh, A. Sharifironizi, Y. Liu, and H. Jebelli, ``Worker-centric heat strain analysis: Integrating physiological signals with ensemble learning and domain adaptation,'' \emph{Autom. Constr.}, vol. 166, Art. no. 105670, 2024, doi: 10.1016/j.autcon.2024.105670.
+\bibitem{choi} Y. Choi \emph{et al.}, ``A machine learning-based forecasting model for personal maximum allowable exposure time under extremely hot environments,'' \emph{Sustain. Cities Soc.}, vol. 101, Art. no. 105140, 2024, doi: 10.1016/j.scs.2023.105140.
+\bibitem{era5} H. Hersbach \emph{et al.}, ``The ERA5 global reanalysis,'' \emph{Q. J. R. Meteorol. Soc.}, vol. 146, pp. 1999--2049, 2020, doi: 10.1002/qj.3803.
+\bibitem{openmeteo} P. Zippenfenig, ``Open-Meteo.com weather API,'' Zenodo, 2023, doi: 10.5281/zenodo.7970649.
+\bibitem{liljegren} J. C. Liljegren, R. A. Carhart, P. Lawday, S. Tschopp, and R. Sharp, ``Modeling the wet bulb globe temperature using standard meteorological measurements,'' \emph{J. Occup. Environ. Hyg.}, vol. 5, no. 10, pp. 645--655, 2008, doi: 10.1080/15459620802310770.
+\bibitem{thermofeel} C. Brimicombe, C. Di Napoli, T. Quintino, F. Pappenberger, R. Cornforth, and H. L. Cloke, ``Thermofeel: A python thermal comfort indices library,'' \emph{SoftwareX}, vol. 18, Art. no. 101005, 2022, doi: 10.1016/j.softx.2022.101005.
+\bibitem{rothfusz} L. P. Rothfusz, ``The heat index equation,'' NWS Southern Region, Tech. Attachment SR 90-23, 1990.
+\bibitem{iso7933} \emph{Ergonomics of the Thermal Environment---Analytical Determination and Interpretation of Heat Stress Using Calculation of the Predicted Heat Strain}, ISO 7933:2023, 2023.
+\bibitem{pythermal} F. Tartarini and S. Schiavon, ``pythermalcomfort: A Python package for thermal comfort research,'' \emph{SoftwareX}, vol. 12, Art. no. 100578, 2020, doi: 10.1016/j.softx.2020.100578.
+\bibitem{sawka} M. N. Sawka \emph{et al.}, ``American College of Sports Medicine position stand: Exercise and fluid replacement,'' \emph{Med. Sci. Sports Exerc.}, vol. 39, no. 2, pp. 377--390, 2007, doi: 10.1249/mss.0b013e31802ca597.
+\bibitem{selfpacing} V. Miller, G. Bates, J. D. Schneider, and J. Thomsen, ``Self-pacing as a protective mechanism against the effects of heat stress,'' \emph{Ann. Occup. Hyg.}, vol. 55, no. 5, pp. 548--555, 2011, doi: 10.1093/annhyg/mer012.
+\bibitem{krisher} L. Krisher \emph{et al.}, ``Heat exposure, heat strain, and off-work recovery of Guatemalan sugarcane workers,'' \emph{Am. J. Physiol. Regul. Integr. Comp. Physiol.}, vol. 328, no. 6, pp. R703--R717, 2025, doi: 10.1152/ajpregu.00004.2025.
+\bibitem{qatar} FAME Laboratory, ``Assessment of occupational heat strain and mitigation strategies in Qatar,'' International Labour Organization, Doha, 2019.
+\bibitem{sklearn} F. Pedregosa \emph{et al.}, ``Scikit-learn: Machine learning in Python,'' \emph{J. Mach. Learn. Res.}, vol. 12, pp. 2825--2830, 2011.
+\bibitem{kapoor} S. Kapoor and A. Narayanan, ``Leakage and the reproducibility crisis in machine-learning-based science,'' \emph{Patterns}, vol. 4, no. 9, Art. no. 100804, 2023, doi: 10.1016/j.patter.2023.100804.
+\bibitem{nielsen} J. Nielsen, ``Enhancing the explanatory power of usability heuristics,'' in \emph{Proc. SIGCHI Conf. Human Factors Comput. Syst. (CHI)}, 1994, pp. 152--158, doi: 10.1145/191666.191729.
+\bibitem{humidex} J. M. Masterton and F. A. Richardson, ``Humidex: A method of quantifying human discomfort due to excessive heat and humidity,'' Environment Canada, CLI 1-79, 1979.
+\end{thebibliography}
+
+\end{document}

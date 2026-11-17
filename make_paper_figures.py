@@ -77,7 +77,8 @@ def fig2():
         c = json.loads(extra.read_text())["P1_dubai_chart_rule"]["summary"]
         ax.scatter([c["warning_min_per_shift"]], [100 * c["miss_rate"]], s=28, marker="o", facecolors="white", edgecolors=INK, zorder=3)
         ax.annotate(f"Dubai chart rule*\n{c['missed']} missed, {c['warning_min_per_shift']:.0f} min", (c["warning_min_per_shift"], 100 * c["miss_rate"]),
-                    xytext=(14, 14), textcoords="offset points", ha="right", va="center", fontsize=7, color=INK, linespacing=1.1)
+                    xytext=(598, 30), textcoords="data", ha="right", va="center", fontsize=7, color=INK, linespacing=1.1,
+                    arrowprops=dict(arrowstyle="-", lw=0.5, color=INK, shrinkA=1, shrinkB=3))
     ax.set_yscale("symlog", linthresh=1, linscale=0.6)
     ax.set_yticks([0, 1, 2, 5, 10, 25, 50, 100]), ax.set_yticklabels(["0", "1", "2", "5", "10", "25", "50", "100"])
     ax.set_ylim(-0.3, 160), ax.set_xlim(-25, 600)

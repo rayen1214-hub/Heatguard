@@ -301,7 +301,17 @@ tr.extra td { color: var(--muted); }
       <span class="pill">H6 21 vs 3 extra catches over Heat Index: pass</span>
       <span class="pill no">H6 vs WBGT: 0 vs 3, not passed</span>
     </div>
-    <!--POSTHOC_BLOCK-->
+    <div class="eyebrow">Extra checks after the locked run · exploratory, they cannot change the verdict</div>
+    <ul class="checks">
+      <li><b>Dubai's own Heat Index chart.</b> Misses 8 of 720, the same as HeatGuard, but warns on 93% of working minutes. HeatGuard is as safe with 69% fewer warning minutes. It is not safer.</li>
+      <li><b>Alarm burden.</b> HeatGuard warns on 28% of working minutes (WBGT 86%). 14% of its warning episodes are followed by an event, so most warnings are still precautionary.</li>
+      <li><b>Which inputs matter.</b> Without the wearable the model misses 56 events instead of 8. Without the pace and activity inputs it misses 42. Without weather inputs, 6.</li>
+      <li><b>Stress test.</b> People half as different: gap closed (3 missed, WBGT 1). People half again as different: partly closed (23 missed, WBGT 11), still 68% fewer warning minutes.</li>
+      <li><b>Other random seeds.</b> Three smaller repeats: gap closed twice, partly closed once (5 missed against 1). 66 to 76% fewer warning minutes in all three.</li>
+      <li><b>Sensor faults.</b> No event was lost, but a fault adds a median 39 to 42 warning minutes and far more on some shifts. Reported as a defect, not fixed, because the model was locked.</li>
+      <li><b>Field averages.</b> The simulated workers match the study they were calibrated to and run hotter and harder than the Qatar and UAE field studies.</li>
+      <li><b>Speed.</b> One decision takes a median 12 ms in the Python engine, against a budget of one per minute.</li>
+    </ul>
     <p class="foot">Simulated workers (ISO 7933 body model with person-to-person differences and self-pacing, calibrated to published field averages) on real ERA5 Dubai weather. Model trained on 200 workers in summer 2025 and tested once on 100 new workers in summer 2024 under a plan written down beforehand. The engine in this page is a JavaScript port of the Python engine; an automated check confirms the two give the same warning on every minute of every shift shown here (risk threshold 0.32, 30-minute hold, Heat Index 54 ceiling).</p>
   </section>
 </div>

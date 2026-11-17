@@ -52,8 +52,12 @@ Code: `tests/test_ai_cases.py`. "Proposed decision" is the AI's suggestion. The
   the risk can stay raised. In the locked scores a 15-minute stuck sensor added more than 60 warning
   minutes on 1,125 of 4,000 shifts (median +42, which is the expected cost of the fallback plus the
   30-minute hold) and more than 240 minutes on 85 shifts. It never made HeatGuard miss an event.
+  A diagnostic on 500 shifts (`posthoc_v5.py faultdiag`, added after the plan) split the extra
+  minutes: about half fall in the fault and its hold, almost none in the stale trend window, and
+  about half later in the day. The later part comes almost only from shifts where the fault lowered
+  the stored "today's low" by more than 1 bpm (42% of shifts; +55 minutes there, +1 elsewhere).
   Not fixed in v0.5, because the model was already locked (decision D27). Proposed fix: do not
-  update the trend and baseline inputs during a fault and for 15 minutes after it.
+  update the baseline input during a fault and for 15 minutes after it.
 
 ## Part A2: Automated checks added for v0.5 (Week 9)
 

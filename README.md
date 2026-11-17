@@ -31,7 +31,10 @@ Verdict under the rule fixed beforehand: **gap closed**. HeatGuard is as safe as
 It is **not** safer than WBGT (8 missed against 5). Full tables: `docs/results/v5_locked_2026-11-16/`.
 Extra checks made after the locked run, including Dubai's own Heat Index chart, a stress test and
 other random seeds: `docs/results/v5_posthoc_2026-11-17/`. They are labelled exploratory and do
-not change the verdict.
+not change the verdict. What they showed, in short: the saving in warning minutes held in every
+check (66 to 76% below WBGT). Against Dubai's own chart HeatGuard is as safe, not safer (8 missed
+each). "As safe as WBGT" did **not** hold when people were made half again as different (23 missed
+against 11) or in one of three smaller repeats with other seeds (5 against 1).
 
 ## What this prototype does not show
 
@@ -41,6 +44,8 @@ not change the verdict.
 - Heart rate, skin temperature and movement are generated from the same simulated body that
   produces the danger events, so the model's best inputs are partly circular.
 - There is no physical device and no message broker. Faults are injected into the messages.
+- After a sensor fault HeatGuard can keep warning longer than it should (a lowered heart-rate
+  baseline). This defect is reported and not fixed, because the model was locked.
 
 See Section VIII of the paper and `docs/decisions.md`.
 
@@ -71,6 +76,7 @@ python posthoc_v5.py analyse   # Dubai chart rule, uncatchable events, alarm bur
 python posthoc_v5.py f15       # stress test
 python posthoc_v5.py f11       # other random seeds
 python posthoc_v5.py latency   # time per message
+python posthoc_v5.py faultdiag # where the extra warnings after a sensor fault come from (added after the plan)
 ```
 
 **Intel Mac (or a "Failed building wheel for llvmlite" error):** use Anaconda instead of `venv`:
@@ -132,6 +138,7 @@ Every one of these, including the failures, is in `docs/iteration_log.md`.
 - `docs/feedback_response.md`: each piece of feedback and what we changed
 - `docs/preregistration_v5.md` and `docs/posthoc_plan_v5.md`: plans committed before the runs
 - `docs/results/`: results of every reported run
+- `docs/paper/`: the paper (LaTeX source, PDF, figures); `python make_paper_figures.py` redraws the figures
 - `docs/architecture_versions.md`: architecture v1.0 to v1.3
 - `docs/iteration_log.md`: what failed, what changed, and why
 - `docs/decisions.md`: design decisions and rejected alternatives

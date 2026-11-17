@@ -46,6 +46,7 @@ AI prompts and individual contributions").
 | 93b4362 | 16 Nov 2026 | v0.5 | Results of the single locked run |
 | 651e2dc | 17 Nov 2026 | v0.5 | Plan for the extra checks, before running them |
 | 0b0ddca | 17 Nov 2026 | v0.5 | Live demo (browser engine, site board, sensor faults) and extra-checks script |
+| ef5c8b6 | 17 Nov 2026 | v0.5 | Results of the extra checks (stress test, other seeds, inputs, speed, sensor-fault breakdown) and their summary |
 | 76697ae (merged 17 Nov) | 10 Nov 2026 | v0.3 | Week 8 dashboard usability review (Faseeh) |
 
 ## Latency and usability measures (proposed 5 Nov 2026, merged and measured 8 Nov 2026)
