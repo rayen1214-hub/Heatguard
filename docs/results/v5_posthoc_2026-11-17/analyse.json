@@ -1,0 +1,256 @@
+{
+  "reproduction": {
+    "shifts": 4000,
+    "hg_shifts_identical_to_locked_scores": 4000
+  },
+  "P1_dubai_chart_rule": {
+    "summary": {
+      "shifts": 4000,
+      "events": 720,
+      "missed": 8,
+      "miss_rate": 0.011111111111111112,
+      "median_lead": 30.0,
+      "false_per_shift": 1.50175,
+      "warning_min_per_shift": 534.04025
+    },
+    "vs_hg": {
+      "H2": {
+        "diff": 0.0,
+        "ci95": [
+          -0.008600038125900128,
+          0.010453222085071611
+        ],
+        "pass": true
+      },
+      "H3": {
+        "reduction": 0.6949579174977916,
+        "ci95": [
+          0.6431733118478686,
+          0.7486096615788608
+        ],
+        "false_ep_diff": -0.42074999999999996,
+        "pass": true
+      },
+      "H4": {
+        "median_diff": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "pass": true
+      },
+      "H6": {
+        "a": 3,
+        "b": 3,
+        "p": 0.65625,
+        "pass": false
+      },
+      "clearly_safer": false,
+      "precision_or_safety": true
+    },
+    "verdict_if_c2b_replaces_c2": "GAP CLOSED",
+    "locked_c2_summary": {
+      "shifts": 4000,
+      "events": 720,
+      "missed": 26,
+      "miss_rate": 0.03611111111111111,
+      "median_lead": 30.0,
+      "false_per_shift": 1.527,
+      "warning_min_per_shift": 446.18025
+    }
+  },
+  "P2_uncatchable": {
+    "events": 720,
+    "uncatchable": 5,
+    "missed": {
+      "c1_ban": {
+        "all": 720,
+        "catchable_only": 715
+      },
+      "c2_heat_index": {
+        "all": 26,
+        "catchable_only": 21
+      },
+      "c3_twl": {
+        "all": 559,
+        "catchable_only": 554
+      },
+      "c4_wbgt": {
+        "all": 5,
+        "catchable_only": 0
+      },
+      "hg": {
+        "all": 8,
+        "catchable_only": 3
+      }
+    }
+  },
+  "P3_burden": {
+    "c1_ban": {
+      "share_of_working_minutes_in_warning": 0.0,
+      "episodes_followed_by_event": 0.0,
+      "shifts_with_no_warning": 1.0
+    },
+    "c2_heat_index": {
+      "share_of_working_minutes_in_warning": 0.779,
+      "episodes_followed_by_event": 0.102,
+      "shifts_with_no_warning": 0.005
+    },
+    "c2b_dubai_chart": {
+      "share_of_working_minutes_in_warning": 0.933,
+      "episodes_followed_by_event": 0.106,
+      "shifts_with_no_warning": 0.001
+    },
+    "c3_twl": {
+      "share_of_working_minutes_in_warning": 0.029,
+      "episodes_followed_by_event": 0.15,
+      "shifts_with_no_warning": 0.798
+    },
+    "c4_wbgt": {
+      "share_of_working_minutes_in_warning": 0.86,
+      "episodes_followed_by_event": 0.1,
+      "shifts_with_no_warning": 0.002
+    },
+    "hg": {
+      "share_of_working_minutes_in_warning": 0.285,
+      "episodes_followed_by_event": 0.141,
+      "shifts_with_no_warning": 0.344
+    }
+  },
+  "P8_fault_warning_growth": {
+    "S5_dropout": {
+      "shifts": 4000,
+      "more_than_60_min": 946,
+      "more_than_240_min": 30,
+      "median_change": 39.0,
+      "max_change": 456.0
+    },
+    "S6_stuck": {
+      "shifts": 4000,
+      "more_than_60_min": 1125,
+      "more_than_240_min": 85,
+      "median_change": 42.0,
+      "max_change": 515.0
+    }
+  },
+  "P5_reference": {
+    "worker_days": 6000,
+    "share_passing_38.0": 0.451,
+    "share_passing_38.3": 0.175,
+    "share_passing_38.5": 0.063,
+    "share_of_work_time_38.0_to_38.4": 0.139,
+    "workers_never_reaching_38.0": 0.245,
+    "mean_working_hr": 104.7,
+    "mean_working_hr_by_work_rate": {
+      "100": 90.6,
+      "165": 105.1,
+      "230": 118.6
+    },
+    "mean_wbgt_08_16": 33.1,
+    "body_mass_loss_pct_end_of_day_median": 2.32
+  },
+  "P4a_coefficient_share_by_group": {
+    "environmental": 0.172,
+    "personal": 0.108,
+    "physiological": 0.459,
+    "quality": 0.0,
+    "time": 0.007,
+    "workload": 0.254
+  },
+  "P4a_top5": [
+    [
+      "hr_rise",
+      2.849
+    ],
+    [
+      "pace_gap15",
+      1.923
+    ],
+    [
+      "hr_mean5",
+      1.865
+    ],
+    [
+      "acclimatised",
+      -1.83
+    ],
+    [
+      "act_mean15",
+      -1.49
+    ]
+  ],
+  "P4b_variants": {
+    "full (locked inputs, re-tuned as a check)": {
+      "inputs": 25,
+      "threshold": 0.32,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.035218783351120594,
+        "warning_min_per_shift": 161.71183333333335
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 8,
+        "miss_rate": 0.011111111111111112,
+        "median_lead": 30.0,
+        "false_per_shift": 1.081,
+        "warning_min_per_shift": 162.90475
+      }
+    },
+    "weather + personal only (no wearable)": {
+      "inputs": 11,
+      "threshold": 0.22,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.035218783351120594,
+        "warning_min_per_shift": 188.367
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 56,
+        "miss_rate": 0.07777777777777778,
+        "median_lead": 30.0,
+        "false_per_shift": 0.9205,
+        "warning_min_per_shift": 192.52075
+      }
+    },
+    "wearable + personal only (no weather)": {
+      "inputs": 19,
+      "threshold": 0.4,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.035218783351120594,
+        "warning_min_per_shift": 156.93
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 6,
+        "miss_rate": 0.008333333333333333,
+        "median_lead": 30.0,
+        "false_per_shift": 1.066,
+        "warning_min_per_shift": 157.34775
+      }
+    },
+    "full without pace and activity inputs": {
+      "inputs": 22,
+      "threshold": 0.28,
+      "tuning_limit_met": true,
+      "train_oof": {
+        "miss_rate": 0.032017075773746,
+        "warning_min_per_shift": 187.01633333333334
+      },
+      "test": {
+        "shifts": 4000,
+        "events": 720,
+        "missed": 42,
+        "miss_rate": 0.058333333333333334,
+        "median_lead": 30.0,
+        "false_per_shift": 1.39075,
+        "warning_min_per_shift": 184.13625
+      }
+    }
+  }
+}

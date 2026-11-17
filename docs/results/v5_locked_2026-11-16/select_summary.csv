@@ -1,0 +1,2 @@
+model,threshold,hold,shifts,events,missed,miss_rate,median_lead,false_per_shift,warning_min_per_shift,constraint_met,primary
+logreg,0.32,30,6000,937,33,0.035218783351120594,30.0,1.1166666666666667,161.71183333333335,True,True

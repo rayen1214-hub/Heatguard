@@ -1,4 +1,4 @@
-# Versions used to build and test v0.1 (Python 3.13)
+# Versions used to build and test (Python 3.13)
 pythermalcomfort==4.8.0
 thermofeel==2.3.0
 numpy==2.5.3
@@ -8,3 +8,5 @@ requests==2.34.2
 streamlit==1.66.1
 pytest
 matplotlib==3.10.7
+pyarrow==26.0.0   # v0.5 stores simulated shifts as parquet
+scipy==1.18.1     # v0.5 exact tests

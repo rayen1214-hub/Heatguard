@@ -1,0 +1,14 @@
+18:49:55 primary model logreg, threshold 0.32, hold 30 min; scoring the locked 2024 test set (once)
+18:55:58 RESULT:
+               events  missed  median_lead  false_per_shift  warning_min_per_shift
+policy                                                                            
+c1_ban            720     720          0.0          0.00000                0.00000
+c2_heat_index     720      26         30.0          1.52700              446.18025
+c3_twl            720     559          0.0          0.22825               16.81675
+c4_wbgt           720       5         30.0          1.61075              492.57625
+hg                720       8         30.0          1.08100              162.90475
+18:55:58 VERDICT: GAP CLOSED
+
+real	8m25.373s
+user	7m59.751s
+sys	0m9.320s

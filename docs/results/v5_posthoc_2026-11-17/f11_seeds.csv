@@ -1,0 +1,4 @@
+seed,train_events,threshold,test_shifts,events,hg_missed,wbgt_missed,hi_missed,twl_missed,hg_warn,wbgt_warn,hg_false,wbgt_false,h2_wbgt_diff_pts,h2_wbgt_lo,h2_wbgt_hi,h2_wbgt_pass,h2_hi_pass,h2_hi_lo,h3_wbgt_reduction,h3_pass,h6_hi,h6_hi_pass,verdict
+1305,213,0.6,1000,183,5,1,13,149,116.2,477.6,0.75,1.62,-2.2,-6.0,0.0,False,False,-3.3,75.7,True,12 vs 4,True,PARTLY CLOSED
+2305,224,0.6,1000,177,3,2,2,137,124.1,495.2,0.82,1.65,-0.6,-1.7,0.0,True,True,-1.7,74.9,True,0 vs 1,False,GAP CLOSED
+3305,283,0.1,1000,133,0,0,1,102,173.4,506.5,0.98,1.7,0.0,0.0,0.0,True,True,0.0,65.8,True,1 vs 0,False,GAP CLOSED

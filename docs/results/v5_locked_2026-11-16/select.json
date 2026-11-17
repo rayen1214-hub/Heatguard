@@ -1,0 +1,36 @@
+{
+  "primary_model": "logreg",
+  "rule_miss_train": {
+    "c2_heat_index": 0.04695837780149413,
+    "c3_twl": 0.8281750266808965,
+    "c4_wbgt": 0.025613660618996798
+  },
+  "max_miss": 0.0356136606189968,
+  "features": [
+    "hr_last",
+    "hr_mean5",
+    "hr_mean15",
+    "hr_slope15",
+    "skin_mean5",
+    "skin_mean15",
+    "skin_slope15",
+    "act_mean5",
+    "act_mean15",
+    "wbgt",
+    "wbgt_mean60",
+    "tdb",
+    "rh",
+    "mass_kg",
+    "height_m",
+    "acclimatised",
+    "work_rate_wm2",
+    "hr_age",
+    "hr_stuck",
+    "minute_of_day",
+    "heat_index",
+    "heat_index_mean60",
+    "pace_gap15",
+    "hr_rise",
+    "skin_rise"
+  ]
+}

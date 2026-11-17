@@ -1,0 +1,583 @@
+<title>HeatGuard Shift Replay</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a site supervisor's console. One clock drives everything: a board of 12 workers on top,
+   one worker in detail below (wearable, sensor controls, minute-by-minute timeline), results last. */
+:root {
+  --bg: #0e1418; --panel: #151d23; --panel-2: #1b252c; --line: #2a3740;
+  --fg: #e7edf0; --muted: #93a3ad; --faint: #5f707b;
+  --heat: #ff7a3d; --heat-soft: rgba(255,122,61,.16);
+  --danger: #ff4d5e; --danger-soft: rgba(255,77,94,.14); --ok: #47c98b; --warn: #f4c04e; --warn-soft: rgba(244,192,78,.18);
+  --c-hg: #ff7a3d; --c-wbgt: #6aa8ff; --c-hi: #c792ea; --c-twl: #4fd1c5;
+  --core: #f2f5f7; --band: rgba(147,163,173,.10);
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f3f5f6; --panel: #ffffff; --panel-2: #eef2f4; --line: #d5dde2;
+  --fg: #14202a; --muted: #52636e; --faint: #8a99a3;
+  --heat: #d9531a; --heat-soft: rgba(217,83,26,.12);
+  --danger: #d2263a; --danger-soft: rgba(210,38,58,.10); --ok: #1f9a5f; --warn: #9a6f00; --warn-soft: rgba(184,134,11,.16);
+  --c-hg: #d9531a; --c-wbgt: #2f6fd6; --c-hi: #8e4fc1; --c-twl: #11908a;
+  --core: #14202a; --band: rgba(82,99,110,.10); color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #f3f5f6; --panel: #ffffff; --panel-2: #eef2f4; --line: #d5dde2;
+  --fg: #14202a; --muted: #52636e; --faint: #8a99a3;
+  --heat: #d9531a; --heat-soft: rgba(217,83,26,.12);
+  --danger: #d2263a; --danger-soft: rgba(210,38,58,.10); --ok: #1f9a5f; --warn: #9a6f00; --warn-soft: rgba(184,134,11,.16);
+  --c-hg: #d9531a; --c-wbgt: #2f6fd6; --c-hi: #8e4fc1; --c-twl: #11908a;
+  --core: #14202a; --band: rgba(82,99,110,.10); color-scheme: light; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: .01em; }
+h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.05; }
+h2 { font-size: 22px; }
+.eyebrow { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--heat); }
+.lede { color: var(--muted); max-width: 72ch; margin: 6px 0 0; }
+.note { color: var(--muted); font-size: 13.5px; max-width: 80ch; margin: 0; }
+header, section { display: grid; gap: 10px; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+
+/* transport bar: the one clock */
+.transport { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.transport .time { font-family: var(--f-mono); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 4.2ch; }
+.btn { all: unset; cursor: pointer; font-family: var(--f-mono); font-size: 13px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); }
+.btn:hover { border-color: var(--faint); }
+.btn:focus-visible, .pick:focus-visible, .tile:focus-visible { outline: 2px solid var(--heat); outline-offset: 2px; }
+.btn.primary { background: var(--heat); color: #fff; border-color: var(--heat); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.speed { display: flex; gap: 4px; }
+.speed .btn[aria-pressed="true"] { border-color: var(--heat); color: var(--heat); }
+#scrub { flex: 1 1 220px; accent-color: var(--heat); min-width: 0; }
+
+/* site board */
+.boardhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 10px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; min-width: 0; }
+.stat .k { font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.stat .row { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--f-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stat .row b { font-size: 20px; font-weight: 600; color: var(--fg); margin-right: 5px; }
+.stat .row .hg b { color: var(--c-hg); }
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.tile { all: unset; cursor: pointer; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; min-width: 0; }
+.tile:hover { border-color: var(--faint); }
+.tile[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--fg); border-color: var(--fg); }
+.tile.alert { border-color: var(--c-hg); background: linear-gradient(var(--heat-soft), var(--heat-soft)), var(--panel); }
+.tile .top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.tile .id { font-family: var(--f-mono); font-weight: 600; font-size: 14px; }
+.chip { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.ok { color: var(--ok); border-color: var(--ok); }
+.chip.alert { color: #fff; background: var(--c-hg); border-color: var(--c-hg); }
+.riskbar { position: relative; height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
+.riskbar i { position: absolute; inset: 0 auto 0 0; background: var(--c-hg); border-radius: 3px; }
+.riskbar.off i { background: var(--faint); }
+.riskbar u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--fg); opacity: .7; }
+.tile .meta { display: flex; justify-content: space-between; gap: 6px; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tile .meta .hot { color: var(--danger); }
+.tile .out { font-size: 11.5px; min-height: 1.5em; color: var(--faint); }
+.tile .out.caught { color: var(--ok); } .tile .out.missed { color: var(--danger); } .tile .out.fault { color: var(--warn); }
+
+/* detail console */
+.picker { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.pick { all: unset; cursor: pointer; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 3px; min-width: 0; align-content: start; }
+.pick:hover { border-color: var(--faint); }
+.pick[aria-pressed="true"] { border-color: var(--heat); background: var(--heat-soft); }
+.pick .code { font-family: var(--f-mono); font-size: 11.5px; color: var(--heat); }
+.pick .t { font-size: 13px; font-weight: 500; line-height: 1.3; }
+.pick .m { font-size: 11.5px; color: var(--muted); font-family: var(--f-mono); }
+.console { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; }
+.side { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.who b { font-family: var(--f-mono); font-size: 16px; }
+.who { color: var(--muted); font-size: 13px; }
+.phase { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.readouts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.ro { background: var(--panel-2); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+.ro .k { font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.ro .v { font-family: var(--f-mono); font-size: 19px; font-variant-numeric: tabular-nums; }
+.ro .v small { font-size: 12px; color: var(--muted); }
+.ro .v.hot { color: var(--danger); }
+.ro .v.faulty { color: var(--warn); }
+.hidden-note { font-size: 11.5px; color: var(--faint); margin-top: 6px; }
+.wearable { display: grid; justify-items: center; gap: 10px; text-align: center; }
+.watch { width: 150px; height: 150px; border-radius: 34px; border: 6px solid var(--line); background: var(--panel-2); display: grid; place-items: center; transition: border-color .2s, box-shadow .2s; }
+.watch .face { display: grid; gap: 2px; }
+.watch .state { font-family: var(--f-display); font-size: 24px; font-weight: 700; letter-spacing: .04em; }
+.watch .sub { font-size: 11.5px; color: var(--muted); }
+.watch.alert { border-color: var(--c-hg); box-shadow: 0 0 0 6px var(--heat-soft); }
+.watch.alert .state { color: var(--c-hg); }
+.watch.ok .state { color: var(--ok); }
+.watch.rest .state { color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .watch.alert { animation: pulse 1.4s ease-in-out infinite; } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 12px transparent; } }
+.banner { font-size: 12.5px; border-radius: 8px; padding: 8px 10px; background: var(--warn-soft); color: var(--warn); border: 1px dashed var(--warn); text-align: left; }
+.faults { display: grid; gap: 8px; }
+.faults .btn { text-align: center; }
+.why { display: grid; gap: 6px; }
+.why .r { display: grid; grid-template-columns: minmax(0, 1fr) 70px; gap: 8px; align-items: center; font-size: 12.5px; }
+.why .r span { overflow-wrap: anywhere; }
+.why .bar { height: 8px; border-radius: 4px; background: var(--panel-2); position: relative; }
+.why .bar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.why .up i { left: 50%; background: var(--c-hg); }
+.why .down i { right: 50%; background: var(--c-wbgt); }
+.why .cap { font-size: 11.5px; color: var(--faint); }
+
+.main { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.jump { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chartbox { position: relative; }
+canvas { width: 100%; display: block; }
+.tip { position: absolute; pointer-events: none; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; font-family: var(--f-mono); line-height: 1.5; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 2; }
+.tip b { font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 8px; border-radius: 2px; display: inline-block; }
+.tally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.tl { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.tl .n { font-family: var(--f-mono); font-size: 22px; font-variant-numeric: tabular-nums; }
+.tl .l { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.tl .l i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.tl .s { font-size: 12px; font-family: var(--f-mono); color: var(--muted); }
+.tl .s.caught { color: var(--ok); } .tl .s.missed { color: var(--danger); }
+.story { font-size: 14px; color: var(--muted); max-width: 80ch; margin: 0; }
+.story b { color: var(--fg); font-weight: 600; }
+
+/* results */
+.results { display: grid; gap: 14px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 640px; }
+th, td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+td { font-family: var(--f-mono); font-size: 13.5px; }
+td:first-child { font-family: var(--f-body); }
+tr.hg td { color: var(--heat); font-weight: 600; }
+tr.extra td { color: var(--muted); }
+.verdict { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pill { font-family: var(--f-mono); font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ok); color: var(--ok); }
+.pill.no { border-color: var(--faint); color: var(--muted); }
+.checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; margin: 0; padding: 0; list-style: none; }
+.checks li { font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+.checks b { color: var(--fg); font-weight: 600; }
+.foot { font-size: 12.5px; color: var(--faint); max-width: 95ch; margin: 0; }
+
+@media (max-width: 900px) {
+  .console { grid-template-columns: minmax(0, 1fr); }
+  .side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stats, .checks { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .side { grid-template-columns: minmax(0, 1fr); }
+  .board, .tally { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .transport .time { font-size: 22px; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">HeatGuard v0.5 · alert engine running in this page · Dubai, summer 2024</div>
+    <h1>Live console: who needs to stop, and when</h1>
+    <p class="lede">Each simulated wearable sends one message a minute. The HeatGuard alert engine in this page reads it, works out the risk and decides whether to warn, with the same model and settings as the locked test. Press Play, then try switching a heart-rate sensor off.</p>
+  </header>
+
+  <div class="transport" role="group" aria-label="Clock">
+    <span class="time" id="time">06:00</span>
+    <button class="btn primary" id="play" type="button">▶ Play</button>
+    <button class="btn" id="reset" type="button">↺ 06:00</button>
+    <div class="speed" role="group" aria-label="Speed">
+      <button class="btn" type="button" data-speed="4">4 min/s</button>
+      <button class="btn" type="button" data-speed="12" aria-pressed="true">12 min/s</button>
+      <button class="btn" type="button" data-speed="40">40 min/s</button>
+    </div>
+    <input type="range" id="scrub" min="0" max="719" value="0" aria-label="Time of day">
+  </div>
+
+  <section>
+    <div class="boardhead">
+      <div>
+        <div class="eyebrow">Supervisor's site board</div>
+        <h2 id="board-title">Twelve workers on one site</h2>
+      </div>
+      <p class="note">Click a worker to open them in the detail view below.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="board" id="board"></div>
+    <p class="note">The bar on each card is HeatGuard's risk for that worker; the tick is the warning threshold. *Core temperature is simulated and shown for the demo only. HeatGuard never sees it.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">One worker in detail</div>
+    <h2>Five shifts worth watching</h2>
+    <div class="picker" id="picker" role="group" aria-label="Choose a shift"></div>
+    <div class="console">
+      <div class="side">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="who"><b id="who-id"></b></span><span class="phase" id="phase">work</span></div>
+          <div class="who" id="who"></div>
+          <div class="readouts">
+            <div class="ro"><div class="k">Core temp.*</div><div class="v" id="v-core">–</div></div>
+            <div class="ro"><div class="k">Heart rate</div><div class="v" id="v-hr">–</div></div>
+            <div class="ro"><div class="k">WBGT</div><div class="v" id="v-wbgt">–</div></div>
+            <div class="ro"><div class="k">Heat Index</div><div class="v" id="v-hi">–</div></div>
+          </div>
+          <div class="hidden-note">*Hidden from HeatGuard. It reads heart rate, skin temperature, activity and weather.</div>
+        </div>
+        <div class="panel wearable">
+          <div class="eyebrow">Worker's wearable</div>
+          <div class="watch" id="watch"><div class="face"><div class="state" id="w-state">OK</div><div class="sub" id="w-sub">risk 0.00</div></div></div>
+          <div class="banner" id="fallback" hidden></div>
+        </div>
+        <div class="panel faults">
+          <div class="eyebrow">Break the sensor</div>
+          <button class="btn" id="f-drop" type="button">Switch heart-rate sensor off for 10 min</button>
+          <button class="btn" id="f-stuck" type="button">Freeze heart-rate reading for 15 min</button>
+          <button class="btn" id="f-clear" type="button">Repair sensor (remove faults)</button>
+          <div class="hidden-note" id="f-note">A fault starts at the time on the clock. HeatGuard should switch to the WBGT rule within 2 minutes (sensor off) or 5 readings (frozen).</div>
+        </div>
+        <div class="panel why">
+          <div class="eyebrow">Why this risk, right now</div>
+          <div id="why"></div>
+          <div class="cap">Orange pushes the risk up, blue pulls it down, compared with an average minute in training.</div>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="panel">
+          <div class="jump">
+            <button class="btn" id="j-warn" type="button">Go to first warning</button>
+            <button class="btn" id="j-event" type="button">Go to danger event</button>
+          </div>
+          <div class="chartbox">
+            <canvas id="chart" height="392" aria-label="Core temperature, HeatGuard risk and each rule's warnings over the shift"></canvas>
+            <div class="tip" id="tip" hidden></div>
+          </div>
+          <div class="legend" style="margin-top:8px">
+            <span><i style="background:var(--core)"></i>Core temperature (hidden)</span>
+            <span><i style="background:var(--danger)"></i>Danger limit</span>
+            <span><i style="background:var(--band)"></i>Rest or legal break</span>
+            <span><i style="background:var(--c-hg)"></i>HeatGuard risk and warning</span>
+            <span><i style="background:var(--warn)"></i>Sensor fault</span>
+            <span><i style="background:var(--c-wbgt)"></i>WBGT rule</span>
+            <span><i style="background:var(--c-hi)"></i>Heat Index rule</span>
+            <span><i style="background:var(--c-twl)"></i>TWL rule</span>
+          </div>
+        </div>
+        <div class="tally" id="tally"></div>
+        <p class="story" id="story"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel results">
+    <div class="eyebrow">All 4,000 test shifts · 720 danger events</div>
+    <h2>Locked test result: gap closed</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Option (all keep the legal break)</th><th>Missed of 720</th><th>Caught</th><th>False alarms / shift</th><th>Warning min / shift</th></tr></thead>
+        <tbody>
+          <tr><td>Break only (federal rule)</td><td>720</td><td>0%</td><td>0.00</td><td>0</td></tr>
+          <tr><td>+ Heat Index ≥ 40 (US formula)</td><td>26</td><td>96.4%</td><td>1.53</td><td>446</td></tr>
+          <tr><td>+ TWL (Abu Dhabi)</td><td>559</td><td>22.4%</td><td>0.23</td><td>17</td></tr>
+          <tr><td>+ WBGT (NIOSH)</td><td>5</td><td>99.3%</td><td>1.61</td><td>493</td></tr>
+          <tr class="hg"><td>+ HeatGuard</td><td>8</td><td>98.9%</td><td>1.08</td><td>163</td></tr>
+          <tr class="extra"><td>+ Dubai's own Heat Index chart (extra check, scored after the locked run)</td><td>8</td><td>98.9%</td><td>1.50</td><td>534</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="verdict">
+      <span class="pill">H1 covers days outside the break: pass</span>
+      <span class="pill">H2 as safe as every rule (2-point margin): pass</span>
+      <span class="pill">H3 67% fewer warning minutes than WBGT: pass</span>
+      <span class="pill">H4 same 30-min lead: pass</span>
+      <span class="pill">H5 sensor faults: pass (weak test)</span>
+      <span class="pill">H6 21 vs 3 extra catches over Heat Index: pass</span>
+      <span class="pill no">H6 vs WBGT: 0 vs 3, not passed</span>
+    </div>
+    <div class="eyebrow">Extra checks after the locked run · exploratory, they cannot change the verdict</div>
+    <ul class="checks">
+      <li><b>Dubai's own Heat Index chart.</b> Misses 8 of 720, the same as HeatGuard, but warns on 93% of working minutes. HeatGuard is as safe with 69% fewer warning minutes. It is not safer.</li>
+      <li><b>Alarm burden.</b> HeatGuard warns on 28% of working minutes (WBGT 86%). 14% of its warning episodes are followed by an event, so most warnings are still precautionary.</li>
+      <li><b>Which inputs matter.</b> Without the wearable the model misses 56 events instead of 8. Without the pace and activity inputs it misses 42. Without weather inputs, 6.</li>
+      <li><b>Stress test.</b> People half as different: gap closed (3 missed, WBGT 1). People half again as different: partly closed (23 missed, WBGT 11), still 68% fewer warning minutes.</li>
+      <li><b>Other random seeds.</b> Three smaller repeats: gap closed twice, partly closed once (5 missed against 1). 66 to 76% fewer warning minutes in all three.</li>
+      <li><b>Sensor faults.</b> No event was lost, but a fault adds a median 39 to 42 warning minutes and far more on some shifts. Reported as a defect, not fixed, because the model was locked.</li>
+      <li><b>Field averages.</b> The simulated workers match the study they were calibrated to and run hotter and harder than the Qatar and UAE field studies.</li>
+      <li><b>Speed.</b> One decision takes a median 12 ms in the Python engine, against a budget of one per minute.</li>
+    </ul>
+    <p class="foot">Simulated workers (ISO 7933 body model with person-to-person differences and self-pacing, calibrated to published field averages) on real ERA5 Dubai weather. Model trained on 200 workers in summer 2025 and tested once on 100 new workers in summer 2024 under a plan written down beforehand. The engine in this page is a JavaScript port of the Python engine; an automated check confirms the two give the same warning on every minute of every shift shown here (risk threshold 0.32, 30-minute hold, Heat Index 54 ceiling).</p>
+  </section>
+</div>
+
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+const DATA = __DATA__;
+const MODEL = DATA.model, SHIFTS = DATA.shifts, BY = Object.fromEntries(SHIFTS.map((s) => [s.code, s]));
+const STORIES = SHIFTS.filter((s) => s.code[0] === "S"), BOARD = SHIFTS.filter((s) => s.code[0] === "B");
+const $ = (id) => document.getElementById(id);
+const fmtTime = (m) => { const t = 360 + m; return String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"); };
+const N = 720;
+const RULES = [
+  { key: "hg", name: "HeatGuard", short: "HG", color: "--c-hg" },
+  { key: "c4", name: "WBGT rule", short: "WBGT", color: "--c-wbgt" },
+  { key: "c2", name: "Heat Index rule", short: "HI", color: "--c-hi" },
+  { key: "c3", name: "TWL rule", short: "TWL", color: "--c-twl" },
+];
+const NAMES = { hr_last: "Heart rate now", hr_mean5: "Heart rate, last 5 min", hr_mean15: "Heart rate, last 15 min", hr_slope15: "Heart-rate trend",
+  skin_mean5: "Skin temperature, 5 min", skin_mean15: "Skin temperature, 15 min", skin_slope15: "Skin-temperature trend",
+  act_mean5: "Movement, last 5 min", act_mean15: "Movement, last 15 min", wbgt: "WBGT now", wbgt_mean60: "WBGT, last hour", tdb: "Air temperature",
+  rh: "Humidity", mass_kg: "Body mass", height_m: "Height", acclimatised: "Used to the heat (or not)", work_rate_wm2: "Planned work rate",
+  hr_age: "Minutes since last reading", hr_stuck: "Frozen-reading flag", minute_of_day: "Time of day", heat_index: "Heat Index now",
+  heat_index_mean60: "Heat Index, last hour", pace_gap15: "Working slower than planned", hr_rise: "Heart rate above today's low",
+  skin_rise: "Skin temperature above today's low" };
+
+// ---- engine state: every shift is replayed by the engine in this page ----
+const faults = {}, runs = {};
+SHIFTS.forEach((s) => { faults[s.code] = s.fault ? HGEngine.SCENARIOS[s.fault].map((f) => ({ ...f })) : []; });
+function rerun(code) { runs[code] = HGEngine.run(MODEL, BY[code], faults[code]); }
+SHIFTS.forEach((s) => rerun(s.code));
+const alertOf = (s, key) => key === "hg" ? runs[s.code].alert : s[key];
+const on = (a, m) => a[m] === 1 || a[m] === "1";
+function caught(s, key) {
+  if (s.onset == null) return null;
+  const a = alertOf(s, key);
+  for (let m = Math.max(0, s.onset - 30); m < s.onset; m++) if (on(a, m)) return s.onset - m;
+  return 0;
+}
+function minutesSoFar(s, key, m) { const a = alertOf(s, key); let n = 0; for (let k = 0; k <= m; k++) if (on(a, k)) n++; return n; }
+
+let sel = STORIES[0].code, minute = N - 1, playing = false, speed = 12, last = 0, acc = 0, hover = null;
+function tok(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+// ---- site board ----
+function buildBoard() {
+  $("board-title").textContent = `Twelve workers on one site · ${new Date(DATA.board_date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+  BOARD.forEach((s) => {
+    const b = document.createElement("button");
+    b.className = "tile"; b.type = "button"; b.id = "tile-" + s.code;
+    b.innerHTML = `<span class="top"><span class="id">${s.worker}</span><span class="chip" data-r="chip"></span></span>
+      <span class="riskbar" data-r="bar"><i data-r="risk"></i><u style="left:${MODEL.threshold * 100}%"></u></span>
+      <span class="meta"><span data-r="hr"></span><span data-r="core"></span></span>
+      <span class="out" data-r="out"></span>`;
+    b.addEventListener("click", () => select(s.code));
+    $("board").appendChild(b);
+  });
+}
+function renderBoard(m) {
+  let hgNow = 0, wbNow = 0, hiNow = 0, hgMin = 0, wbMin = 0, hiMin = 0, events = 0, hgCaught = 0;
+  BOARD.forEach((s) => {
+    const run = runs[s.code], el = $("tile-" + s.code), q = (r) => el.querySelector(`[data-r="${r}"]`);
+    const ph = s.phase[m], alert = run.alert[m] === 1, chip = q("chip");
+    el.classList.toggle("alert", alert);
+    el.setAttribute("aria-pressed", s.code === sel ? "true" : "false");
+    chip.className = "chip" + (alert ? " alert" : ph === "w" ? " ok" : "");
+    chip.textContent = ph === "b" ? "Legal break" : alert ? "Stop · rest" : ph === "r" ? "Rest" : "OK";
+    q("risk").style.width = (Math.min(1, run.prob[m]) * 100).toFixed(1) + "%";
+    q("bar").classList.toggle("off", run.fallback[m] === 1);
+    q("hr").textContent = run.hr[m] != null ? run.hr[m].toFixed(0) + " bpm" : "no reading";
+    const core = q("core"); core.textContent = "core* " + (s.core[m] != null ? s.core[m].toFixed(1) : "–"); core.classList.toggle("hot", s.core[m] != null && s.core[m] >= s.limit);
+    const out = q("out");
+    if (s.onset != null && m >= s.onset) {
+      const lead = caught(s, "hg");
+      out.className = "out " + (lead ? "caught" : "missed");
+      out.textContent = `Danger at ${fmtTime(s.onset)} · ${lead ? "warned " + lead + " min before" : "no warning in time"}`;
+    } else if (run.fallback[m]) { out.className = "out fault"; out.textContent = (run.hr[m] == null ? "No heart rate" : "Heart rate frozen") + " · WBGT rule decides"; }
+    else { out.className = "out"; out.textContent = s.acclimatised ? "" : "new to the heat"; }
+    hgNow += alert ? 1 : 0; wbNow += on(s.c4, m) ? 1 : 0; hiNow += on(s.c2, m) ? 1 : 0;
+    hgMin += minutesSoFar(s, "hg", m); wbMin += minutesSoFar(s, "c4", m); hiMin += minutesSoFar(s, "c2", m);
+    if (s.onset != null && m >= s.onset) { events++; if (caught(s, "hg")) hgCaught++; }
+  });
+  const total = BOARD.filter((s) => s.onset != null).length, n = BOARD.length, f = (x) => x.toLocaleString("en-GB");
+  $("stats").innerHTML = `
+    <div class="stat"><span class="k">Told to stop right now</span><span class="row"><span class="hg"><b>${hgNow}</b>of ${n} HeatGuard</span><span><b>${wbNow}</b>WBGT rule</span><span><b>${hiNow}</b>Heat Index rule</span></span></div>
+    <div class="stat"><span class="k">Warning minutes so far, all ${n} workers</span><span class="row"><span class="hg"><b>${f(hgMin)}</b>HeatGuard</span><span><b>${f(wbMin)}</b>WBGT</span><span><b>${f(hiMin)}</b>Heat Index</span></span></div>
+    <div class="stat"><span class="k">Workers who reached the danger limit</span><span class="row"><span><b>${events}</b>of ${total} so far</span><span class="hg"><b>${hgCaught}</b>warned ahead by HeatGuard</span></span></div>`;
+}
+
+// ---- detail view ----
+function buildPicker() {
+  STORIES.forEach((s) => {
+    const b = document.createElement("button");
+    b.className = "pick"; b.type = "button"; b.id = "pick-" + s.code;
+    b.innerHTML = `<span class="code">Shift ${s.code[1]}</span><span class="t">${s.title}</span><span class="m">${s.worker} · ${s.date}</span>`;
+    b.addEventListener("click", () => select(s.code));
+    $("picker").appendChild(b);
+  });
+}
+function select(code) {
+  sel = code; hover = null;
+  document.querySelectorAll(".pick").forEach((b) => b.setAttribute("aria-pressed", b.id === "pick-" + code ? "true" : "false"));
+  const s = BY[code];
+  $("who-id").textContent = s.worker + " · " + s.date;
+  $("who").textContent = `${s.acclimatised ? "Used to the heat" : "New to the heat"} · ${s.work_rate} W/m² work · danger limit ${s.limit.toFixed(1)} °C · ${s.ban ? "legal break day" : "outside the legal break dates"}`;
+  render();
+}
+function writeStory(s) {
+  const run = runs[s.code], parts = [], n = (k) => minutesSoFar(s, k, N - 1);
+  if (s.onset != null) {
+    const w = (k) => caught(s, k) ? "warned in time" : "missed it";
+    parts.push(`This worker reaches the danger limit at <b>${fmtTime(s.onset)}</b>. HeatGuard <b>${w("hg")}</b>, the WBGT rule ${w("c4")}, the Heat Index rule ${w("c2")}, the TWL rule ${w("c3")}.`);
+  } else parts.push("This worker never reaches the danger limit.");
+  parts.push(`Warning minutes over the whole day: HeatGuard <b>${n("hg")}</b>, WBGT <b>${n("c4")}</b>, Heat Index <b>${n("c2")}</b>, TWL <b>${n("c3")}</b>.`);
+  const fb = run.fallback.reduce((a, b) => a + b, 0);
+  if (faults[s.code].length) parts.push(`Sensor faults today: ${faults[s.code].map((f) => `${f.type === "dropout" ? "off" : "frozen"} from ${fmtTime(f.start)} for ${f.minutes} min`).join("; ")}. HeatGuard used the WBGT rule for <b>${fb}</b> minutes.`);
+  $("story").innerHTML = parts.join(" ");
+}
+function renderWhy(step) {
+  const el = $("why");
+  if (step.mode !== "ML") { el.innerHTML = `<div class="r"><span>The heart-rate reading cannot be trusted, so the model's risk is not used. The WBGT rule decides until readings return.</span></div>`; return; }
+  const items = Object.entries(step.push).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 5);
+  const max = Math.max(...items.map((x) => Math.abs(x[1])), 0.5);
+  el.innerHTML = items.map(([k, v]) => `<div class="r ${v >= 0 ? "up" : "down"}"><span>${NAMES[k] || k}</span><span class="bar"><i style="width:${(Math.abs(v) / max * 50).toFixed(1)}%"></i></span></div>`).join("");
+}
+function render() {
+  const s = BY[sel], run = runs[sel], m = Math.min(minute, N - 1), step = run.steps[m];
+  $("time").textContent = fmtTime(m); $("scrub").value = m;
+  const ph = s.phase[m];
+  $("phase").textContent = ph === "w" ? "work" : ph === "r" ? "rest" : "legal break";
+  const core = s.core[m];
+  $("v-core").innerHTML = core != null ? core.toFixed(2) + " <small>°C</small>" : "–";
+  $("v-core").classList.toggle("hot", core != null && core >= s.limit);
+  const faulty = run.fallback[m] === 1;
+  $("v-hr").innerHTML = run.hr[m] != null ? run.hr[m].toFixed(0) + " <small>bpm" + (faulty ? " (frozen)" : "") + "</small>" : "<small>no reading</small>";
+  $("v-hr").classList.toggle("faulty", faulty);
+  $("v-wbgt").innerHTML = s.wbgt[m].toFixed(1) + " <small>°C</small>";
+  $("v-hi").innerHTML = s.hi[m].toFixed(1) + " <small>°C</small>";
+  const w = $("watch");
+  if (ph === "b") { w.className = "watch rest"; $("w-state").textContent = "BREAK"; $("w-sub").textContent = "legal midday break"; }
+  else if (run.alert[m]) { w.className = "watch alert"; $("w-state").textContent = "STOP"; $("w-sub").textContent = "rest in shade · drink"; }
+  else if (ph === "r") { w.className = "watch rest"; $("w-state").textContent = "REST"; $("w-sub").textContent = "planned shade rest"; }
+  else { w.className = "watch ok"; $("w-state").textContent = "OK"; $("w-sub").textContent = faulty ? "WBGT rule says OK" : "risk " + run.prob[m].toFixed(2); }
+  const fb = $("fallback"); fb.hidden = !faulty;
+  if (faulty) fb.textContent = step.mode === "UNAVAILABLE" ? "No heart rate and no weather reading: warning stays on until someone checks." : (run.hr[m] == null ? "No heart-rate reading." : "Heart-rate reading is frozen, so it is not trusted.") + " The model's risk is not used: the WBGT rule decides until readings return. Check the strap and the device.";
+  $("f-drop").disabled = $("f-stuck").disabled = m >= N - 1;
+  $("j-warn").disabled = !run.alert.includes(1); $("j-event").disabled = s.onset == null;
+  renderWhy(step); drawTally(s, m); writeStory(s); drawChart(s, run, m); renderBoard(m);
+}
+function drawTally(s, m) {
+  $("tally").innerHTML = RULES.map((r) => {
+    let st = "warning min so far", cls = "";
+    if (s.onset != null && m >= s.onset) { const c = caught(s, r.key); st = c ? `warned ${c} min before` : "missed the event"; cls = c ? "caught" : "missed"; }
+    return `<div class="tl"><span class="l"><i style="background:var(${r.color})"></i>${r.name}</span><span class="n">${minutesSoFar(s, r.key, m)}</span><span class="s ${cls}">${st}</span></div>`;
+  }).join("");
+}
+
+// ---- chart: core temperature, HeatGuard risk, and one lane per rule, all on one time axis ----
+const G = { L: 52, R: 16, top: 10, coreH: 160, riskGap: 18, riskH: 64, laneGap: 18, laneH: 16, laneSep: 6 };
+G.riskTop = G.top + G.coreH + G.riskGap; G.laneTop = G.riskTop + G.riskH + G.laneGap; G.bottom = G.laneTop + 4 * (G.laneH + G.laneSep) - G.laneSep; G.H = G.bottom + 26;
+function drawChart(s, run, m) {
+  const cv = $("chart"), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = G.H;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + "px"; }
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const { L, R, top, coreH, riskTop, riskH, laneTop, laneH, laneSep, bottom } = G;
+  const X = (k) => L + (k / N) * (W - L - R);
+  const lo = 36.6, hi = Math.max(38.8, s.limit + 0.3), Y = (v) => top + coreH - ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * coreH;
+  const YR = (p) => riskTop + riskH - Math.min(1, p) * riskH;
+  const mono = "11px " + tok("--f-mono"), body = "11px " + tok("--f-body");
+  // rest and break bands
+  ctx.fillStyle = tok("--band");
+  for (let k = 0; k < N; k++) if (s.phase[k] !== "w") { ctx.fillRect(X(k), top, X(k + 1) - X(k) + 0.5, coreH); ctx.fillRect(X(k), riskTop, X(k + 1) - X(k) + 0.5, riskH); }
+  // core grid
+  ctx.strokeStyle = tok("--line"); ctx.lineWidth = 1; ctx.fillStyle = tok("--muted"); ctx.font = mono; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let v = 37.0; v <= hi + 1e-6; v += 0.5) { const y = Y(v); ctx.globalAlpha = .5; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.globalAlpha = 1; ctx.fillText(v.toFixed(1), L - 6, y); }
+  // danger limit
+  ctx.strokeStyle = tok("--danger"); ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(L, Y(s.limit)); ctx.lineTo(W - R, Y(s.limit)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = tok("--danger"); ctx.textAlign = "left"; ctx.textBaseline = "bottom"; ctx.fillText("danger limit " + s.limit.toFixed(1) + " °C", L + 6, Y(s.limit) - 3);
+  // 30-minute window before the event, and the event line
+  if (s.onset != null && m >= s.onset) {
+    const x0 = X(Math.max(0, s.onset - 30)), x = X(s.onset);
+    ctx.fillStyle = tok("--danger-soft"); ctx.fillRect(x0, laneTop - 4, x - x0, bottom - laneTop + 8);
+    ctx.strokeStyle = tok("--danger"); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom + 4); ctx.stroke();
+  }
+  // core line
+  ctx.strokeStyle = tok("--core"); ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.beginPath(); let started = false;
+  for (let k = 0; k <= m; k++) { const v = s.core[k]; if (v == null) continue; if (!started) { ctx.moveTo(X(k), Y(v)); started = true; } else ctx.lineTo(X(k), Y(v)); }
+  ctx.stroke();
+  if (s.core[m] != null) { ctx.fillStyle = tok("--core"); ctx.beginPath(); ctx.arc(X(m), Y(s.core[m]), 4, 0, 7); ctx.fill(); }
+  // risk strip
+  ctx.fillStyle = tok("--warn-soft");
+  for (let k = 0; k <= m; k++) if (run.fallback[k]) ctx.fillRect(X(k), riskTop, X(k + 1) - X(k) + 0.5, riskH);
+  ctx.strokeStyle = tok("--line"); ctx.lineWidth = 1; ctx.strokeRect(L, riskTop, W - L - R, riskH);
+  ctx.strokeStyle = tok("--muted"); ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(L, YR(MODEL.threshold)); ctx.lineTo(W - R, YR(MODEL.threshold)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = tok("--muted"); ctx.font = mono; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  ctx.fillText("risk 1", L - 6, riskTop + 5); ctx.fillText(MODEL.threshold.toFixed(2), L - 6, YR(MODEL.threshold)); ctx.fillText("0", L - 6, riskTop + riskH - 4);
+  ctx.strokeStyle = tok("--c-hg"); ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let k = 0; k <= m; k++) { const y = YR(run.prob[k]); if (k === 0) ctx.moveTo(X(k), y); else ctx.lineTo(X(k), y); }
+  ctx.stroke();
+  ctx.fillStyle = tok("--warn"); ctx.textAlign = "left"; ctx.textBaseline = "top";
+  const firstFault = run.fallback.findIndex((v, k) => v && k <= m);
+  if (firstFault >= 0) ctx.fillText("sensor fault", Math.min(X(firstFault) + 3, W - R - 80), riskTop + 3);
+  // rule lanes
+  RULES.forEach((r, i) => {
+    const y = laneTop + i * (laneH + laneSep), a = alertOf(s, r.key);
+    ctx.fillStyle = tok("--panel-2"); ctx.fillRect(L, y, W - L - R, laneH);
+    ctx.fillStyle = tok(r.color);
+    for (let k = 0; k <= m; k++) if (on(a, k)) ctx.fillRect(X(k), y, X(k + 1) - X(k) + 0.6, laneH);
+    ctx.fillStyle = tok("--muted"); ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.font = body;
+    ctx.fillText(r.short, L - 6, y + laneH / 2);
+  });
+  // time axis
+  ctx.fillStyle = tok("--muted"); ctx.font = mono; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  const everyH = W < 520 ? 3 : 2;
+  for (let h = 0; h <= 12; h += everyH) ctx.fillText(String(6 + h).padStart(2, "0") + ":00", Math.min(X(h * 60), W - R - 14), bottom + 8);
+  // playhead and hover line
+  ctx.strokeStyle = tok("--heat"); ctx.lineWidth = 1; ctx.globalAlpha = .7; ctx.beginPath(); ctx.moveTo(X(m), top); ctx.lineTo(X(m), bottom); ctx.stroke(); ctx.globalAlpha = 1;
+  if (hover != null && hover <= m) { ctx.strokeStyle = tok("--fg"); ctx.globalAlpha = .45; ctx.beginPath(); ctx.moveTo(X(hover), top); ctx.lineTo(X(hover), bottom); ctx.stroke(); ctx.globalAlpha = 1; }
+}
+function showTip(ev) {
+  const cv = $("chart"), box = cv.getBoundingClientRect(), W = cv.clientWidth, s = BY[sel], run = runs[sel];
+  const k = Math.round(((ev.clientX - box.left) - G.L) / (W - G.L - G.R) * N), tip = $("tip");
+  if (k < 0 || k > Math.min(minute, N - 1)) { hover = null; tip.hidden = true; drawChart(s, run, Math.min(minute, N - 1)); return; }
+  hover = k;
+  const warn = RULES.filter((r) => on(alertOf(s, r.key), k)).map((r) => r.short).join(", ") || "none";
+  tip.innerHTML = `<b>${fmtTime(k)}</b> · ${s.phase[k] === "w" ? "work" : s.phase[k] === "r" ? "rest" : "legal break"}<br>core* ${s.core[k] != null ? s.core[k].toFixed(2) : "–"} °C · HR ${run.hr[k] != null ? run.hr[k].toFixed(0) : "none"}<br>risk ${run.prob[k].toFixed(2)}${run.fallback[k] ? " (not used: sensor fault)" : ""}<br>warning: ${warn}`;
+  tip.hidden = false;
+  const x = ev.clientX - box.left;
+  tip.style.left = Math.max(0, Math.min(W - tip.offsetWidth, x + (x > W / 2 ? -tip.offsetWidth - 12 : 12))) + "px"; tip.style.top = "8px";
+  drawChart(s, run, Math.min(minute, N - 1));
+}
+$("chart").addEventListener("pointermove", showTip);
+$("chart").addEventListener("pointerleave", () => { hover = null; $("tip").hidden = true; render(); });
+
+// ---- sensor faults: change the messages, then let the engine replay the day ----
+function addFault(type, minutes) {
+  const start = Math.min(minute, N - 1);
+  faults[sel] = faults[sel].filter((f) => f.start + f.minutes <= start || f.start >= start + minutes).concat([{ type, start, minutes }]);
+  rerun(sel); render();
+  if (!playing && minute < N - 1) setPlaying(true);
+}
+$("f-drop").addEventListener("click", () => addFault("dropout", 10));
+$("f-stuck").addEventListener("click", () => addFault("stuck", 15));
+$("f-clear").addEventListener("click", () => { faults[sel] = []; rerun(sel); render(); });
+
+// ---- clock ----
+function setPlaying(p) { playing = p; $("play").textContent = p ? "❚❚ Pause" : "▶ Play"; if (p) { last = performance.now(); acc = 0; requestAnimationFrame(tick); } }
+function tick(t) {
+  if (!playing) return;
+  acc += (t - last) / 1000 * speed; last = t;
+  if (acc >= 1) { minute = Math.min(N - 1, minute + Math.floor(acc)); acc -= Math.floor(acc); render(); }
+  if (minute >= N - 1) { setPlaying(false); return; }
+  requestAnimationFrame(tick);
+}
+$("play").addEventListener("click", () => { if (minute >= N - 1) minute = 0; setPlaying(!playing); });
+$("reset").addEventListener("click", () => { minute = 0; setPlaying(false); render(); });
+$("scrub").addEventListener("input", (e) => { minute = +e.target.value; render(); });
+$("j-warn").addEventListener("click", () => { const k = runs[sel].alert.indexOf(1); if (k >= 0) { minute = k; setPlaying(false); render(); } });
+$("j-event").addEventListener("click", () => { const k = BY[sel].onset; if (k != null) { minute = k; setPlaying(false); render(); } });
+document.querySelectorAll("[data-speed]").forEach((b) => b.addEventListener("click", () => {
+  speed = +b.dataset.speed; document.querySelectorAll("[data-speed]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+}));
+window.addEventListener("resize", render);
+if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", render);
+new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+buildBoard(); buildPicker(); select(sel);   // opens at the end of the day so the whole picture is visible before Play
+</script>

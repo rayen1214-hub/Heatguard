@@ -11,6 +11,22 @@ so the commit history matches this table.
 | Jaanvi Chugani | 9959877 | Wearables and faults | Reviewed the sample wearable messages and explained their format; ran the S5/S6 scenarios in the dashboard and captured screenshots. | Commit: [add hash]; message-format notes and dashboard screenshots |
 | Fahmi Shafeeq | 8982569 | Warning methods; scorer and dashboard | Reviewed the warning threshold results against the 5% miss limit; captured clean-shift and dropout-shift screenshots and checked one lead-time calculation against the scoring rules. | Commit: [add hash]; threshold notes and dashboard evidence |
 
+## Weeks 8 and 9
+
+Same rule: each member fills their own row and commits it from their own GitHub account. The
+"where to look" column lists what the repository already shows; it is a memory aid, not a claim.
+
+| Member | What I did in Weeks 8 and 9 | Commits / evidence | Where to look |
+|--------|-----------------------------|--------------------|---------------|
+| Rayen Chaouachi | [to fill] | [to fill] | Decisions D12 to D27 (sign-offs of 8, 16 and 17 Nov); real Week 8 run on own laptop; pull requests #1 to #4 reviewed and merged; questions to the professor (12 and 17 Nov) |
+| Zayed Zanober | [to fill] | [to fill] | Paper review: Sections VI and VIII |
+| Faseeh Padinjarathil | [to fill] | [to fill] | Week 8 dashboard usability review (commits fe87e32, 76697ae); paper review: Sections VII and IV-C |
+| Jaanvi Chugani | [to fill] | [to fill] | Manual test cases (`docs/test_cases.md` Part B); paper review: IEEE format and references |
+| Fahmi Shafeeq | [to fill] | [to fill] | Paper review: Section V and Fig. 2 |
+
+AI assistance in these weeks (code, the locked run, the paper draft, these documents) is recorded
+in `docs/genai_log.md`.
+
 ## Starter tasks for a member taking over a part (about 1–2 hours each)
 
 - **Weather loader:** run `python run_pilot.py --fetch`, check `data/weather_request.json`, and plot one day of temperature, humidity and WBGT for the evidence pack.
