@@ -1,0 +1,31 @@
+{
+  "fraction": 0.4387679027395609,
+  "fit_participants": [
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    40,
+    43,
+    44,
+    45,
+    47,
+    49
+  ],
+  "held_out_participants": [
+    29,
+    39,
+    41,
+    42,
+    48
+  ],
+  "fit_windows": 60,
+  "test_windows": 22,
+  "original_holdout_mae_bpm": 6.955554863823778,
+  "calibrated_holdout_mae_bpm": 6.692642397335066
+}

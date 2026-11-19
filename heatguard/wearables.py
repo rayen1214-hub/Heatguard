@@ -23,15 +23,19 @@ from . import config as C
 
 def make_messages(traj: pd.DataFrame, worker: pd.Series, seed: int,
                   hr_noise=C.HR_NOISE_SD, skin_noise=C.SKIN_NOISE_SD,
-                  thermal_gain=C.HR_THERMAL_GAIN) -> pd.DataFrame:
+                  thermal_gain=C.HR_THERMAL_GAIN, recovery_fraction=0.5) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
     target = (worker["hr_rest"]
               + worker["hr_work_gain"] * (traj["met_wm2"] - C.REST_MET_WM2)
               + thermal_gain * (traj["t_cr"].ffill() - 36.8).clip(lower=0))
     hr = np.empty(len(traj))
     hr_now = float(worker["hr_rest"])
-    for i, t in enumerate(target.to_numpy()):          # heart rate follows its target with a ~2 min lag
-        hr_now += (t - hr_now) / 2.0
+    resting = traj["met_wm2"].to_numpy() <= C.REST_MET_WM2
+    for i, t in enumerate(target.to_numpy()):
+        if resting[i]:
+            hr_now += (t - hr_now) * recovery_fraction
+        else:
+            hr_now += (t - hr_now) / 2.0
         hr[i] = hr_now
     msgs = pd.DataFrame({
         "ts": traj["timestamp"].dt.strftime("%Y-%m-%dT%H:%M:%S"),

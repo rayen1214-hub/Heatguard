@@ -1,0 +1,102 @@
+{
+  "base_commit": "559b0f2",
+  "train_shifts": 768,
+  "validation_shifts": 288,
+  "test_shifts": 480,
+  "invalid_shifts": [
+    0,
+    0,
+    0
+  ],
+  "seeds": [
+    2305,
+    2405,
+    2505
+  ],
+  "settings": {
+    "original": {
+      "recovery_fraction": 0.5,
+      "threshold": 0.4,
+      "hold": 30,
+      "validation_constraint_met": true,
+      "validation_max_miss": 0.01
+    },
+    "calibrated": {
+      "recovery_fraction": 0.4387679027395609,
+      "threshold": 0.4,
+      "hold": 30,
+      "validation_constraint_met": true,
+      "validation_max_miss": 0.01
+    }
+  },
+  "results": {
+    "calibrated": {
+      "shifts": 480,
+      "events": 84,
+      "missed": 3,
+      "miss_rate": 0.03571428571428571,
+      "median_lead": 30.0,
+      "lead_iqr": [
+        23.5,
+        30.0
+      ],
+      "false_per_shift": 0.8020833333333334,
+      "warning_min_per_shift": 122.11666666666666
+    },
+    "original": {
+      "shifts": 480,
+      "events": 84,
+      "missed": 3,
+      "miss_rate": 0.03571428571428571,
+      "median_lead": 30.0,
+      "lead_iqr": [
+        23.5,
+        30.0
+      ],
+      "false_per_shift": 0.8166666666666667,
+      "warning_min_per_shift": 122.98333333333333
+    },
+    "wbgt": {
+      "shifts": 480,
+      "events": 84,
+      "missed": 0,
+      "miss_rate": 0.0,
+      "median_lead": 30.0,
+      "lead_iqr": [
+        27.0,
+        30.0
+      ],
+      "false_per_shift": 1.6229166666666666,
+      "warning_min_per_shift": 502.65833333333336
+    }
+  },
+  "australian_comparison": {
+    "australia": {
+      "maintenance_workers": 12,
+      "midday_temperature_observations": 28,
+      "workers_with_midday_temperature": 10,
+      "midday_core_median_C": 37.495000000000005,
+      "midday_hr_median_bpm": 87.0,
+      "first6h_group_trace_mean_bpm": 80.59444444444445
+    },
+    "calibrated": {
+      "midday_hr": 92.6,
+      "midday_rectal": 37.71215552738544,
+      "first6h_mean_wbgt": 31.820575804852886,
+      "first6h_population_mean_hr": 100.9332193287037
+    },
+    "original": {
+      "midday_hr": 92.6,
+      "midday_rectal": 37.71215552738544,
+      "first6h_mean_wbgt": 31.820575804852886,
+      "first6h_population_mean_hr": 100.85803240740739
+    }
+  },
+  "source_sha256": {
+    "../csit305 project/data/prospie-lab/PROSPIE-original.xlsx": "5209b4e5ffb2f6a515a276e6b55cdc33190f514b7ac02528e04bc32cc35ebd3e",
+    "../csit305 project/data/western-australia-mine-workers/pone.0292436.s003.xlsx": "4b4239a5455649a91c0d9661dc7a7df144a4e419172726c59f4ff4bd8e684e73",
+    "../csit305 project/data/western-australia-mine-workers/pone.0292436.s008.xlsx": "179778bd85716ffafa2377507884bd308e9e9255e26eb5e1979f027265df996d",
+    "data/weather_hourly.csv": "b3daa4c9d8a846e41fc52345cd3b37c99f4d5a1eb8d931b4d9818f96363736ae",
+    "data/weather_hourly_2024.csv": "e70db21987138a87fd47216a62002cdd70fb4d6a4f074a5df2e3553a5dea8a26"
+  }
+}
