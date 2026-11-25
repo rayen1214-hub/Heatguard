@@ -1,36 +1,21 @@
-# Contributions
+# Team contributions
 
-Each member fills their own row and commits the change from their own GitHub account,
-so the commit history matches this table.
+Rayen led the research and core implementation. The other four members have distinct technical and submission responsibilities. The source column identifies completed artifacts or earlier team reports. The review column records responsibilities for member confirmation.
 
-| Member | Student no. | Part(s) owned | What I did this week | Commits / evidence |
-|--------|-------------|---------------|----------------------|--------------------|
-| Rayen Chaouachi | 1268806 | 3 Simulator; pipeline and integration | Led the Week 7 build: planned the prototype design and its limits; built v0.1 and v0.2 with Claude Code (declared in docs/genai_log.md); ran the pilot and full study on real 2025 weather on my laptop; found the empty test set in the first full run and had the split fixed (v0.2); took the dashboard evidence screenshots; prepared the documentation handover | Commits b714ac3 to 1b35743 (made through a Claude Code session); iteration log entries for v0.1 to v0.2; evidence/ screenshots |
-| Zayed Zanober | 8417386 | Weather loader | Ran the weather fetch; checked the request data and plotted one day of temperature, humidity and WBGT for the evidence pack. | Commit: [add hash]; weather plot and request-data check |
-| Faseeh Padinjarathil | 8418779 | Workers and shifts | Checked the acclimatised and unacclimatised worker balance and work rates in the generated workers file; documented the profile assumptions. | Commit: [76697ae]; workers.csv check and profile notes |
-| Jaanvi Chugani | 9959877 | Wearables and faults | Reviewed the sample wearable messages and explained their format; ran the S5/S6 scenarios in the dashboard and captured screenshots. | Commit: [add hash]; message-format notes and dashboard screenshots |
-| Fahmi Shafeeq | 8982569 | Warning methods; scorer and dashboard | Reviewed the warning threshold results against the 5% miss limit; captured clean-shift and dropout-shift screenshots and checked one lead-time calculation against the scoring rules. | Commit: [add hash]; threshold notes and dashboard evidence |
+| Member | Area | Work recorded in the project | Submission review |
+|---|---|---|---|
+| Rayen Chaouachi | **Research lead and core system** | Led the simulator, alert pipeline and integration with Claude Code assistance. Ran the early real-weather simulations and investigated the empty test split. The decision log and pre-registration record the v0.5 research sign-off. Week 8 records his hand check of lead-time scoring. | Defend study design, explain the locked run and confirm overall package. |
+| Zayed Zanober | **Weather, rules and discussion** | The Week 7 contribution record reports a weather fetch, request-data review and weather plot. The AI-use log review branch contains two edits by Zayed's account. | Check weather sources and comparator terminology, and review the discussion. |
+| Faseeh Padinjarathil | **Worker assumptions, dashboard review and measured-data follow-up** | The Week 7 contribution record reports worker profile checks. The Week 8 dashboard review and screenshots are in Git. Requested and guided the Codex-assisted PROSPIE calibration and Australian field comparison, then organized the submission copy with Codex. | Verify the external-data interpretation, usability claims and limitations. |
+| Jaanvi Chugani | **Wearable messages, sensor scenarios and paper assembly** | The Week 7 contribution record reports a message-format review and runs of dashboard scenarios S5 and S6. The team task sheet assigns independent cases and paper assembly. | Confirm sensor evidence, record any independently written cases, and verify the paper format. |
+| Fahmi Shafeeq | **Comparator results, thresholds and figures** | The Week 7 contribution record reports threshold review, dashboard screenshots and a lead-time spot check. The team task sheet assigns the results tables and figures. | Verify the result tables, the alarm metrics and the comparison used in the presentation. |
 
-## Weeks 8 and 9
+## Evidence
 
-Same rule: each member fills their own row and commits it from their own GitHub account. The
-"where to look" column lists what the repository already shows; it is a memory aid, not a claim.
+- Rayen: [decision log](docs/decisions.md), [locked plan](docs/preregistration_v5.md), [lead-time hand check](docs/results/week8_real_2026-11-08/README.md). Initial pipeline and split fix: `b714ac3`, `adf803f`, `1b35743`.
+- Zayed: log edits `ebcb478` and `93f4fa4`. [Weather and discussion tasks](docs/team/tasks/zayed.md).
+- Faseeh: the [usability review](docs/team/guides/HeatGuard_Week8_Dashboard_Usability_Review.md) in `76697ae`, and the [measured-data follow-up](docs/prospie_recovery.md) in `6a38ab7`.
+- Jaanvi: [wearable and testing assignment](docs/team/tasks/jaanvi.md). The earlier statement is recorded in `559b0f2:CONTRIBUTIONS.md`. Member-specific evidence for the S5/S6 runs still needs confirmation.
+- Fahmi: [results assignment](docs/team/tasks/fahmi.md). The earlier statement is recorded in `559b0f2:CONTRIBUTIONS.md`. Member-specific evidence for the spot check and screenshots still needs confirmation.
 
-| Member | What I did in Weeks 8 and 9 | Commits / evidence | Where to look |
-|--------|-----------------------------|--------------------|---------------|
-| Rayen Chaouachi | [to fill] | [to fill] | Decisions D12 to D27 (sign-offs of 8, 16 and 17 Nov); real Week 8 run on own laptop; pull requests #1 to #4 reviewed and merged; questions to the professor (12 and 17 Nov) |
-| Zayed Zanober | [to fill] | [to fill] | Paper review: Sections VI and VIII |
-| Faseeh Padinjarathil | [to fill] | [to fill] | Week 8 dashboard usability review (commits fe87e32, 76697ae); paper review: Sections VII and IV-C |
-| Jaanvi Chugani | [to fill] | [to fill] | Manual test cases (`docs/test_cases.md` Part B); paper review: IEEE format and references |
-| Fahmi Shafeeq | [to fill] | [to fill] | Paper review: Section V and Fig. 2 |
-
-AI assistance in these weeks (code, the locked run, the paper draft, these documents) is recorded
-in `docs/genai_log.md`.
-
-## Starter tasks for a member taking over a part (about 1–2 hours each)
-
-- **Weather loader:** run `python run_pilot.py --fetch`, check `data/weather_request.json`, and plot one day of temperature, humidity and WBGT for the evidence pack.
-- **Workers and shifts:** check that the balance of acclimatised/unacclimatised workers and work rates is right in `outputs/<run>/workers.csv`, and write two sentences on the profile assumptions.
-- **Wearables and faults:** open `sample_messages.jsonl`, explain the message format, and run the S5/S6 scenarios in the dashboard and take screenshots.
-- **Warning methods:** read `threshold_table.csv` and explain in plain words why the chosen threshold was picked, or why none met the 5% miss limit.
-- **Scorer and dashboard:** take dashboard screenshots of one clean shift and one dropout shift, and check one lead-time number by hand against the scoring rules.
+Each member confirms their own statement, artifacts and reflection. [Reflection and contribution guide](docs/team/guides/reflection_and_contribution.md) · [AI assistance log](docs/genai_log.md)
