@@ -30,7 +30,7 @@ The [pre-registered v0.5 test](docs/preregistration_v5.md) used **4,000 held-out
 | + WBGT, NIOSH limits | 5 | 493 | 1.61 |
 | **+ HeatGuard** | **8** | **163** | **1.08** |
 
-![Plot comparing warning burden and event sensitivity for the locked simulation](docs/paper/fig2.png)
+![Plot comparing warning minutes and missed events in the locked simulation](docs/paper/fig2.png)
 
 The model's strongest features and the danger label come from the same simulated physiology. A known fault can also keep warnings active after a heart-rate sensor recovers. These limitations matter when interpreting the results.
 
