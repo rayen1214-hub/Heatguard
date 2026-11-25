@@ -1,7 +1,7 @@
 # Test cases: AI-generated vs manually developed (Week 8, A7)
 
 The method (Section III) says GenAI-proposed edge cases are compared with manual cases
-using an acceptance rationale, a coverage category and the test outcome. This file is that record.
+using an acceptance rationale, a coverage category and the test outcome. This file records the available evidence and the status of that comparison.
 
 **How to keep the comparison fair:** the manual cases (Part B) should be written by group
 members **before reading Part A**, so they are not copied from the AI's list.
@@ -71,26 +71,20 @@ edge cases proposed for the comparison in Part C.
 | `tests/test_demo_engine.py` | 2 | The browser engine gives the same risk, warning and fallback state as the Python engine on every minute of every demo shift, in three sensor scenarios (36,720 minutes); the demo page contains exactly the engine that was checked |
 
 Whole suite on 17 Nov 2026: `python -m pytest -q` gives 46 passed, 5 skipped (the empty manual
-template below), 1 expected failure (F1, kept visible on purpose).
+fixture), 1 expected failure (F1, kept visible on purpose).
 
-## Part B: Manual cases (to be written by group members)
+## Part B: Human-performed check and browser scenarios
 
-Write these **without looking at Part A**. Add your name. Aim for 8–12 cases across
-the same categories. Then implement them in `tests/test_manual_cases.py`.
+Rayen's Week 8 hand check compared the expected and reported lead time for worker W021 on 5 September 2025. The warning was on at minute 315 and the event started at minute 345. The difference was 30 minutes, matching the score. [Recorded check](results/week8_real_2026-11-08/README.md)
 
-| ID | Author | Category | Case | Expected behaviour | Outcome | Accepted? Why |
-|----|--------|----------|------|--------------------|---------|---------------|
-| M-01 | | | | | | |
-| M-02 | | | | | | |
-| M-03 | | | | | | |
+The submission copy adds eight [browser interaction scenarios](validation/README.md) executed with Playwright. They cover status changes, fallback, repair, worker selection and controls. The original fixture in `tests/test_manual_cases.py` remains available for independently authored student cases. There are no submitted member-authored cases in that fixture.
 
-## Part C: Comparison (fill in after Part B)
+## Part C: Coverage comparison
 
-| Measure | AI-generated | Manual |
-|---------|--------------|--------|
-| Cases proposed | 17 | |
-| Accepted / modified / rejected | 15 / 0 / 2 (proposed) | |
-| Categories covered | 9 (sensor faults, boundary, robustness, data quality, scoring, baseline, statistics, model selection, message stream/leakage) | |
-| Defects found | 2 (F1, F2) | |
-| Cases only one side thought of | | |
-| Time taken | about 20 min | |
+| Evidence | What it checks | Recorded result |
+|---|---|---|
+| AI-proposed edge cases (Part A) | Faults, boundaries, scoring, comparators, statistics and model selection | 17 proposed, 15 implemented and two findings (F1 and F2). F1 remains an expected failure in the Week 7 model. |
+| Human-performed lead-time check (Part B) | One archived scoring row against hand arithmetic | 30 min by hand and in the result file. |
+| Playwright browser scenarios (Part B) | Eight visible behaviours during an offline replay | Eight passed, including dropout, frozen reading and repair. |
+
+The hand check is a cross-check of one result. An independent comparison of edge-case authoring methods requires a separate student-authored set.

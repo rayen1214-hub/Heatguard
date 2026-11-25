@@ -1,0 +1,8 @@
+D01 PASS: offline page shows 12 workers and five individual shift stories
+D02 PASS: keyboard selection updates the worker detail
+D03 PASS: reset returns OK at 06:00 and the first warning shows STOP
+D04 PASS: dropout hides the heart-rate value and shows WBGT fallback
+D05 PASS: a detected frozen reading is labelled and switches to WBGT
+D06 PASS: Repair sensor clears fallback and restores a heart-rate value
+D07 PASS: supervisor tile selects its worker and displays the legal break
+D08 PASS: clock and worker status load at 390 px without a page error

@@ -1,0 +1,4 @@
+17 shifts x 3 scenarios = 51 replays, 36720 minutes compared
+largest risk difference: 4.97e-5
+warning state differs on 0 minutes; fallback state differs on 0 minutes
+PASS: the browser engine matches the Python engine
