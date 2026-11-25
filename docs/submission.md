@@ -7,7 +7,7 @@
 | IEEE paper and source | [Paper PDF](paper/heatguard_paper.pdf), [LaTeX](paper/heatguard_paper.tex), [figures](paper/) |
 | Functional artefact and reproduction | [README](../README.md), [offline replay](demo/heatguard_demo.html) |
 | Testing and validation | [Browser and score checks](validation/README.md), [edge-case record](test_cases.md), [locked run](results/v5_locked_2026-11-16/) |
-| Development record | [Commit milestones](milestones.md), [iteration log](iteration_log.md), [decisions](decisions.md) |
+| Development record | [Planning and development milestones](milestones.md), [iteration log](iteration_log.md), [decisions](decisions.md) |
 | AI use and evidence | [Session record](genai_log.md), [prompt images](prompts/README.md) |
 | Measured-data follow-up | [Methods and limitations](prospie_recovery.md), [data and licences](../data/external/README.md) |
 | Team roles and supporting artifacts | [Contribution record](../CONTRIBUTIONS.md) |

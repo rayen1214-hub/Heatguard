@@ -18,7 +18,7 @@ AI prompts and individual contributions").
 | Usability review | [`team/guides/HeatGuard_Week8_Dashboard_Usability_Review.md`](team/guides/HeatGuard_Week8_Dashboard_Usability_Review.md) | Heuristic evaluation of the Week 8 dashboard (Faseeh, 10 Nov), and what the v0.5 demo changed in response (below) |
 | Screenshots | [`evidence/`](evidence/) | Test runs, results tables, dashboard (clean, dropout, stuck, danger shift) |
 | AI use and prompts | [`genai_log.md`](genai_log.md), prompt records in [`prompts/`](prompts/) | Which tool did what, how it was checked, and the prompts used |
-| Individual contributions | [`../CONTRIBUTIONS.md`](../CONTRIBUTIONS.md) | Each member's own row, committed from their own GitHub account |
+| Individual contributions | [`../CONTRIBUTIONS.md`](../CONTRIBUTIONS.md) | Recorded work, review responsibilities and outstanding member confirmations |
 
 ## Prototype versions and commits
 
