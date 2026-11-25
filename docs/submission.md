@@ -4,7 +4,7 @@
 
 | Item | Evidence |
 |---|---|
-| IEEE paper and source | [Paper PDF](paper/heatguard_paper.pdf), [LaTeX](paper/heatguard_paper.tex), [figures](paper/) |
+| IEEE paper and source | [Paper PDF](paper/heatguard_paper.pdf), [LaTeX](paper/heatguard_paper.tex), [figures](paper/), [reference audit](paper/reference-audit.md) |
 | Functional artefact and reproduction | [README](../README.md), [offline replay](demo/heatguard_demo.html) |
 | Testing and validation | [Browser and score checks](validation/README.md), [edge-case record](test_cases.md), [locked run](results/v5_locked_2026-11-16/) |
 | Development record | [Planning and development milestones](milestones.md), [iteration log](iteration_log.md), [decisions](decisions.md) |
@@ -18,7 +18,7 @@
 |---|---|
 | Individual reflections, contribution statements and AI declaration | Each student confirms their own work and completes their individual record. |
 | Independent edge-case comparison | The original student fixture has no submitted member-authored cases. Attach any independently written cases and their results if available. |
-| Moodle and SharePoint | Confirm Moodle milestone uploads and the final submission. Add the actual SharePoint link to the hand-in materials if required. |
+| Moodle and SharePoint | Confirm Moodle milestone uploads and the final submission. SharePoint folder creation is pending. Add its reviewer-accessible link to the paper and hand-in materials once available. |
 | Presentation and defense | Confirm the group's rehearsal, presentation materials and demo arrangements. |
 | Public repository | Review screenshot attribution and visibility of existing author identifiers in the paper and Git history before approving publication. |
 
