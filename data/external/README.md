@@ -14,6 +14,6 @@ Reproduce calibration and retraining from the repository root with Python 3.13, 
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python retrain_prospie.py
 ```
 
-The script writes new outputs under outputs/prospie_retrained. Saved results of the completed run are in docs/results/prospie_retrained. Recovery methodology is in docs/prospie_recovery.md. The completed retraining used 768 training shifts, 288 validation shifts and 480 test shifts, separate virtual workers and seeds, 2025 weather for training/validation and 2024 weather for testing. Both versions were trained separately and tuned on validation workers. They missed 3 of 84 events each. This is an exploratory follow-up.
+The script writes new outputs under outputs/prospie_retrained. Saved results are in [the retraining directory](../../docs/results/prospie_retrained/). The [method and comparisons](../../docs/prospie_recovery.md) describe both follow-up runs. The completed retraining used 768 training shifts, 288 validation shifts and 480 test shifts, separate virtual workers and seeds, 2025 weather for training/validation and 2024 weather for testing. Both versions were trained separately and tuned on validation workers. They missed 3 of 84 events each. This is an exploratory follow-up.
 
 The run manifest retains the original local source paths used at execution time and SHA-256 checksums. The same source bytes are now available here.

@@ -44,3 +44,32 @@ All 192 training and 144 test shifts were valid. Both variants saw the same 25 s
 Both variants missed the same three events. One event's lead time, one shift's false-episode count and twelve shifts' warning duration changed. The slower recovery setting made little difference to warnings in this paired run. This result applies to the one fitted parameter and this test cohort. The separately locked 4,000-shift v0.5 run remains the primary study.
 
 The repository test suite returned 46 passed, 5 skipped and 1 expected failure.
+
+## Follow-up using independent training, validation and test shifts
+
+The paired run above kept one predictor fixed. A later exploratory run trained **two separate logistic regressions** on matched Dubai simulations. It used 768 training shifts and 288 threshold-selection shifts in 2025, then 480 test shifts in 2024. Each cohort had separate virtual workers. Both versions used the same shift schedules, body model and fault-free test inputs apart from the recovery rate applied to simulated heart rate during rest.
+
+| Test metric | Original recovery | PROSPIE recovery | WBGT |
+|---|---:|---:|---:|
+| Missed events | 3 / 84 | 3 / 84 | 0 / 84 |
+| Mean warning minutes per shift | 122.98 | 122.12 | 502.66 |
+
+The gain on the held-out lab recordings did little to change warning performance in this Dubai simulation. Saved shift scores, model-selection tables and the run manifest are in [the retraining results](results/prospie_retrained/).
+
+### Australian field comparison
+
+Taggart et al.'s Western Australian mine-worker study supplied measured summer maintenance-worker checkpoints (S3) and a group-average heart-rate trace (S8). S9 records field conditions. The comparison was descriptive and did not tune or train a model.
+
+| Measure | Western Australian field data | PROSPIE-calibrated Dubai simulation |
+|---|---:|---:|
+| First six-hour mean heart rate (bpm) | 80.6 | 100.9 |
+| Mid-shift median heart rate (bpm) | 87.0 | 92.6 |
+| Mid-shift median core or rectal temperature (°C) | 37.50 | 37.71 |
+
+The Australian sample covers 12 summer maintenance workers. The field mid-shift temperature estimate is based on 28 readings from 10 of them. A group-average trace cannot test individual recovery or alert accuracy. Differences in jobs, work-rest schedules and climate limit the comparison. In particular, the heart-rate gap remains after calibration and shows where the simulated shifts differ from this measured workforce.
+
+### Dubai weather cross-check
+
+Dubai Airport METAR observations cover temperature at a local station. For the 2025 morning period from 06:00 to 11:59 Dubai time, station reports with matching hourly timestamps were compared with ERA5. Multiple station reports at the same timestamp were reduced to their median. There were 731 matched hours and a mean absolute temperature difference of 1.117 °C. This check describes air temperature at the airport. The project still uses the ERA5 inputs and has no measured UAE worker physiology.
+
+[Source workbooks and licences](../data/external/README.md) · [Verification script](validation/check-results.py)

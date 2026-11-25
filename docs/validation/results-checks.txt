@@ -1,0 +1,7 @@
+Both ERA5 inputs and the three retraining source files match recorded checksums.
+original: 480 paired shifts, 84 events, 3 misses.
+wbgt: 480 paired shifts, 84 events, 0 misses.
+calibrated: 480 paired shifts, 84 events, 3 misses.
+Airport comparison: 731 matched morning hours, mean absolute error 1.117 °C.
+Locked hg: 4,000 shifts, 720 events, 8 misses, 162.90 warning minutes/shift.
+Locked c4_wbgt: 4,000 shifts, 720 events, 5 misses, 492.58 warning minutes/shift.
