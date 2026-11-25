@@ -12,7 +12,7 @@ AI prompts and individual contributions").
 | Feedback and our response | [`feedback_response.md`](feedback_response.md) | Each piece of feedback from the teaching team and what changed |
 | Iterations, including failures | [`iteration_log.md`](iteration_log.md) | Every run: what we tried, what happened, what we changed |
 | Version history | GitHub commit history (`main`, and branch `week9-iteration` until its pull request is merged), screenshot `evidence/13_github_commit_history.png` | v0.1 → v0.5 commits (table below) |
-| Test records | [`../tests/`](../tests/), [`test_cases.md`](test_cases.md) | 10 regression tests (`test_core.py`), 17 AI-generated edge cases (`test_ai_cases.py`), 18 checks for v0.5 (`test_v5.py`, `test_posthoc.py`, `test_demo_engine.py`), manual cases (`test_manual_cases.py`); findings F1 to F3 and the AI vs manual comparison in `test_cases.md`. Run with `python -m pytest -q` |
+| Test records | [`../tests/`](../tests/), [`test_cases.md`](test_cases.md) | 10 regression tests (`test_core.py`), 17 AI-generated edge cases (`test_ai_cases.py`), 18 checks for v0.5 (`test_v5.py`, `test_posthoc.py`, `test_demo_engine.py`), a hand check and an independent case fixture; see [test cases](test_cases.md) for findings F1 to F3 and comparison status. Run with `python -m pytest -q` |
 | Results | `outputs/<run>/summary.json` (created by each run); Week 8 in [`results/week8_real_2026-11-08/`](results/week8_real_2026-11-08/); v0.5 locked run in [`results/v5_locked_2026-11-16/`](results/v5_locked_2026-11-16/); extra checks in [`results/v5_posthoc_2026-11-17/`](results/v5_posthoc_2026-11-17/) | Tables, per-shift scores and verdict of every reported run |
 | Demo | [`demo/heatguard_demo.html`](demo/heatguard_demo.html), engine [`demo/engine.js`](demo/engine.js), agreement check [`demo/check_engine.js`](demo/check_engine.js) | The alert engine running in a browser page: site board, worker's wearable, sensor-fault controls |
 | Usability review | [`team/guides/HeatGuard_Week8_Dashboard_Usability_Review.md`](team/guides/HeatGuard_Week8_Dashboard_Usability_Review.md) | Heuristic evaluation of the Week 8 dashboard (Faseeh, 10 Nov), and what the v0.5 demo changed in response (below) |
@@ -87,3 +87,11 @@ was designed with its findings in hand. The demo page itself has not yet had its
 | Technical labels and unexplained empty cells (2) | Plain labels ("warning minutes", "false alarms per shift"); results always come from the full test, so no empty cells |
 | No quick way to reach a fault or a warning (1) | "Go to first warning" and "Go to danger event" buttons |
 | WBGT limit line without a label; colour alone (2) | Every line and lane has a text label; hovering the chart lists which rules are warning |
+
+## Submission verification
+
+- [Milestones](milestones.md) summarise the iterations using the original Git references.
+- [Validation](validation/README.md) links the browser and Python checks, screenshots and score verification.
+- [Measured-data follow-up](prospie_recovery.md) records the PROSPIE calibration, Australian comparison and Dubai Airport check.
+- [Prompt evidence](prompts/README.md) lists the original captures and their recorded provenance.
+- [Submission review](submission.md) records the included artifacts and remaining member confirmations.
