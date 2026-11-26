@@ -18,7 +18,7 @@
 |---|---|
 | Individual reflections, contribution statements and AI declaration | Each student confirms their own work and completes their individual record. |
 | Independent edge-case comparison | The original student fixture has no submitted member-authored cases. Attach any independently written cases and their results if available. |
-| Moodle and SharePoint | Confirm Moodle submissions. Upload the revised paper and demo to the [SharePoint submission folder](https://uowmailedu-my.sharepoint.com/:f:/g/personal/fp418_uowmail_edu_au/IgAwG3WqqWcARrZaE-4lCy9QAWBCdWdE84tVAvXls5q75Ek?e=tMQ89n) and check that the tutor can open it. The link is included in the paper. |
+| Moodle and SharePoint | Confirm Moodle submissions. Upload the revised paper and demo to the [SharePoint submission folder](https://uowmailedu-my.sharepoint.com/:f:/g/personal/fp418_uowmail_edu_au/IgAwG3WqqWcARrZaE-4lCy9QASuq_GTxz7iU6o4pjrf9EiU?e=v9Q385) and check that the tutor can open it. The link is included in the paper's appendix. |
 | Presentation and defense | Confirm the group's rehearsal, presentation materials and demo arrangements. |
 | Public repository | Review screenshot attribution and visibility of existing author identifiers in the paper and Git history before approving publication. |
 
