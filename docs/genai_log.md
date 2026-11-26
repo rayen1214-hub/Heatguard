@@ -25,7 +25,7 @@ Rayen requested and coordinated the recorded Claude Code sessions, ran the Week 
 
 | Submission preparation | Faseeh requested a local submission repository and review before publication. | Codex organized the existing Git history, indexed the prompt images, added and ran browser checks, verified research outputs, and drafted the submission documentation and paper edits. | Existing author dates and prompt-image bytes were preserved. The browser checks were executed by Codex using Playwright. Individual reviews and declarations are for each member to confirm. |
 
-| 26 Nov 2026 | Faseeh shared the team lead's request to review the paper before hand-in. | Codex checked citation metadata and primary sources, compared the methods and results with the archived code, and revised the paper for clarity. | The six-page PDF was rebuilt. Team review and the SharePoint URL are pending. |
+| 26 Nov 2026 | Faseeh shared the team lead's request to review the paper before hand-in. | Codex checked citation metadata and primary sources, compared the methods and results with the archived code, and revised the paper for clarity. | The six-page PDF was rebuilt. Faseeh then supplied the SharePoint URL for Codex to insert. Team review and SharePoint access verification remain pending. |
 
 ## Evidence
 
