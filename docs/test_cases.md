@@ -77,7 +77,18 @@ fixture), 1 expected failure (F1, kept visible on purpose).
 
 Rayen's Week 8 hand check compared the expected and reported lead time for worker W021 on 5 September 2025. The warning was on at minute 315 and the event started at minute 345. The difference was 30 minutes, matching the score. [Recorded check](results/week8_real_2026-11-08/README.md)
 
-The submission copy adds eight [browser interaction scenarios](validation/README.md) executed with Playwright. They cover status changes, fallback, repair, worker selection and controls. The original fixture in `tests/test_manual_cases.py` remains available for independently authored student cases. There are no submitted member-authored cases in that fixture.
+The submission copy adds eight [browser interaction scenarios](validation/README.md) executed with Playwright. They cover status changes, fallback, repair, worker selection and controls. The former empty fixture now contains eight Codex-assisted regression cases, executed with pytest. Independent student-authored cases are still pending.
+
+| Case | Expected result | Observed |
+|---|---|---|
+| Q-01 | Warnings at minutes 100, 101 and 115 before onset at 120 give 20 minutes of lead | Pass |
+| Q-02 | A warning cluster at minutes 40–41 counts as one false episode. A warning at 100 catches onset at 120 | Pass |
+| Q-03 | Warnings at minutes 10, 13, 20 and 22 form two episodes | Pass |
+| Q-04 | The NIOSH limit for an unacclimatised worker at 100 W is 31.7 °C | Pass |
+| Q-05–06 | The study danger limits are 38.5 °C and 38.2 °C for acclimatised and unacclimatised workers | Pass |
+| Q-07–08 | The shift switches from 165 W/m² work at minute 44 to 70 W/m² rest at minute 45 | Pass |
+
+Full suite: 54 passed and one expected failure with `NUMBA_NUM_THREADS=1 python -m pytest -q`.
 
 ## Part C: Coverage comparison
 

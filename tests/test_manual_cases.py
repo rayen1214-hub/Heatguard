@@ -1,4 +1,4 @@
-"""Manual test cases (Week 8, rubric A7), written by group members.
+"""Manual test cases (Week 8, rubric A7), with Codex-assisted verification cases (Q IDs).
 
 HOW TO ADD A CASE (no Python knowledge needed):
   1. Write the case in plain words first in docs/team/guides/manual_test_cases.md.
@@ -24,6 +24,8 @@ from heatguard import config as C
 #    (case ID, warning minutes, danger onset minute, expected missed?, expected lead time in min,
 #     expected false-alarm episodes)
 SCORING_CASES = [
+    ("Q-01", [100, 101, 115], 120, False, 20, 0),
+    ("Q-02", [40, 41, 100], 120, False, 20, 1),
     # Example: ("M-00", [100, 101, 102], 120, False, 20, 0),
 ]
 
@@ -31,24 +33,30 @@ SCORING_CASES = [
 #    (A new episode needs 5 clear minutes in between.)
 #    (case ID, warning minutes, expected number of episodes)
 EPISODE_CASES = [
+    ("Q-03", [10, 13, 20, 22], 2),
     # Example: ("M-00", [10, 11, 12, 30], 2),
 ]
 
 # 3. WBGT LIMIT (NIOSH): for this metabolic rate in watts, is the limit about what you expect?
 #    (case ID, metabolic rate in W, acclimatised True/False, expected limit in degrees C, tolerance)
 LIMIT_CASES = [
+    ("Q-04", 100, False, 31.7, 0.01),
     # Example: ("M-00", 300, False, 25.0, 0.5),
 ]
 
 # 4. DANGER LIMIT: which body-temperature limit applies?
 #    (case ID, acclimatised True/False, expected limit in degrees C)
 DANGER_CASES = [
+    ("Q-05", True, 38.5),
+    ("Q-06", False, 38.2),
     # Example: ("M-00", True, 38.5),
 ]
 
 # 5. SHIFT SCHEDULE: at this minute of the shift, is the worker working or resting,
 #    and at what metabolic rate?  (case ID, work rate W/m2, minute, expected "work"/"rest", expected W/m2)
 SCHEDULE_CASES = [
+    ("Q-07", 165, 44, "work", 165),
+    ("Q-08", 165, 45, "rest", 70),
     # Example: ("M-00", 230, 50, "rest", 70),
 ]
 # ---------------------------------------------------------------------------------------------

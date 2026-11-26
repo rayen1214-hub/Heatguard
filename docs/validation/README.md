@@ -21,11 +21,13 @@ The screenshots are from an earlier offline walkthrough of the same archived pag
 
 ## Python and pipeline checks
 
-The complete Python suite on the submission copy finished with **46 passed, 5 skipped and 1 expected failure**. The five skipped entries are empty student-case fixtures. The expected failure records the original Week 7 model's handling of missing heart rate.
+Before the new regression cases, the Python suite finished with **46 passed, 5 skipped and 1 expected failure**. The five skipped entries are empty student-case fixtures. The expected failure records the original Week 7 model's handling of missing heart rate.
 
 The v0.5 smoke run completed data generation, model selection and final scoring on its tiny synthetic fixture. Its scripted verdict was PARTLY CLOSED. This fixture checks that the stages execute and is excluded from the reported research scores.
 
 The measured-data lab-only command reproduced the saved recovery fraction and held-out errors. The score verification script checked source hashes and all paired shift scores against the saved retraining summary. The full retraining uses the archived run.
+
+After the eight Codex-assisted cases were added, the complete suite returned **54 passed and one expected failure** with `NUMBA_NUM_THREADS=1 python -m pytest -q`. See [case inputs and outcomes](../test_cases.md).
 
 ## Run the checks
 
